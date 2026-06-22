@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.4 - 2026-06-23
+
+- 做了什么：将 README 重写为中文项目规则；将 `notes/02_minimal_ppo_baseline.md` 固化为已完成总结；新增 `notes/03_ppo_baseline_v0.md` 作为当前任务。
+- 为什么：项目应按教程节奏推进，一节完成后总结旧 note，并新建下一节 note；对话只做管理和疑难交流。
+
 ## v0.2.3 - 2026-06-23
 
 - 做了什么：新增 `scripts/summarize_ppo_run.py`，并更新 `notes/02_minimal_ppo_baseline.md`，要求通过 Git 提交轻量实验记录，而不是把训练结果贴回聊天。
