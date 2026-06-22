@@ -78,7 +78,43 @@ episode=5 return=277.406 length=53
 mean_return=267.642 std_return=21.591
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 v1、v2 的直接对比
+
+| 指标 | v1 obs norm | v2 KL 0.03 | v3 KL 0.06 | 观察 |
+| --- | ---: | ---: | ---: | --- |
+| evaluation mean return | 276.612 | 244.985 | 267.642 | v3 明显好于 v2，但仍低于 v1 |
+| evaluation std | 6.004 | 8.967 | 21.591 | v3 评估波动更大 |
+| evaluation episode length | 50-54 | 44-48 | 44-53 | v3 恢复到接近 v1，但有一次较短 episode |
+| tail approx KL mean | 0.0934 | 0.0350 | 0.0645 | v3 成功把 KL 压到 v1 和 v2 中间 |
+| tail clip fraction mean | 0.5028 | 0.2863 | 0.4302 | v3 clip fraction 低于 v1，但仍偏高 |
+| tail value loss mean | 109.38 | 552.53 | 156.09 | v3 critic 明显好于 v2，接近 v1 |
+| tail update epochs used mean | 10.0 | 3.45 | 5.80 | v3 比 v2 少被提前停止，但仍经常 early stop |
+
+### 正向结果
+
+- `target_kl=0.06` 比 `0.03` 更合理，评估均值从 `244.985` 恢复到 `267.642`。
+- KL 控制生效：tail `approx_kl` 均值从 v1 的 `0.0934` 降到 `0.0645`。
+- critic 没有像 v2 一样被严重压制，tail `value_loss` 均值降到 `156.09`。
+
+### 问题
+
+- v3 仍没有超过当前最强短训配置 v1。
+- 评估标准差 `21.591` 明显高于 v1，说明短训策略仍不稳定。
+- `early_stopped` 在 tail 中仍全部触发，`update_epochs_used` 均值只有 `5.80`，说明 KL early stopping 仍明显限制了训练步幅。
+
+## 结论
+
+- `target_kl=0.06` 是比 `0.03` 更好的 update control 阈值。
+- 但在 `100k` timesteps 短训下，最强配置仍是 `observation normalization + no target_kl`。
+- 下一步进入长训练时，应优先使用 v1 配置作为主线，先确认手写 PPO baseline 的长训上限。
+
+## 下一步决策
+
+进入 `notes/07_ppo_long_obsnorm_training.md`：
+
+1. 保留 observation normalization。
+2. 暂不启用 KL early stopping。
+3. 将训练规模从 `100k` 提升到 `3M` timesteps。
+4. 用长训结果判断 baseline 是否继续提升，以及是否需要后续做 KL、learning rate 或多 seed 对比。

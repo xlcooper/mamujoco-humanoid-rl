@@ -1,83 +1,72 @@
-# 06 当前任务：PPO KL Target Tuning
+# 06 已完成：PPO KL Target Tuning
 
 ## 本节目标
 
 调整 KL early stopping 的阈值，在“更新稳定”和“学习速度”之间找到更好的折中。
 
-v2 说明 `target_kl=0.03` 能降低 KL 和 clip fraction，但过于保守，导致评估表现从 v1 的 `276.612` 回落到 `244.985`。
+上一节 v2 使用 `target_kl=0.03`，虽然降低了 KL 和 clip fraction，但评估表现从 v1 的 `276.612` 回落到 `244.985`。因此本节尝试更宽松的 `target_kl=0.06`。
 
-本节先不改代码，只跑一个更温和的参数版本。
+## 已完成实验
 
-## 为什么不是继续加新技巧
+- `experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md`
 
-目前已经有：
+核心配置：
 
-- 手写 PPO baseline
-- observation normalization
-- rolling episode 日志
-- KL early stopping
+- seed: `0`
+- total timesteps: `100000`
+- normalize observations: `true`
+- target KL: `0.06`
+- rollout steps: `2048`
+- batch size: `256`
+- update epochs: `10`
+- learning rate: `3e-4`
 
-现在的问题不是缺新模块，而是已有 update control 的阈值需要调。直接继续加 reward scaling 或更长训练，会让变量太多，不利于判断因果。
+## 评估结果
 
-## 本节实验任务
-
-运行 v3：
-
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 100000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_baseline_v3_obsnorm_kl006_seed0 \
-  --normalize-observations \
-  --target-kl 0.06
+```text
+episode=1 return=280.254 length=53
+episode=2 return=224.528 length=44
+episode=3 return=276.856 length=53
+episode=4 return=279.168 length=53
+episode=5 return=277.406 length=53
+mean_return=267.642 std_return=21.591
 ```
 
-评估：
-
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_baseline_v3_obsnorm_kl006_seed0/checkpoints/agent_final.pt \
-  --episodes 5 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_baseline_v3_obsnorm_kl006_seed0/eval_output.txt
-```
-
-生成 Git 管理的实验记录：
-
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_baseline_v3_obsnorm_kl006_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_baseline_v3_obsnorm_kl006_seed0/eval_output.txt \
-  --output experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md
-```
-
-提交轻量记录：
-
-```bash
-git add experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md
-git commit -m "Record PPO baseline v3 obs norm KL006 seed0 summary"
-git pull --rebase
-git push
-```
-
-## 对比重点
+## 本节分析
 
 和 v1、v2 对比：
 
-- evaluation mean return 是否接近或超过 v1 的 `276.612`。
-- `approx_kl` 是否明显低于 v1，但不要像 v2 那样过度压制。
-- `clip_fraction` 是否低于 v1。
-- `update_epochs_used` 是否比 v2 更接近 10，说明 early stopping 不再过度频繁。
-- value loss 是否保持在 v1 的较低水平附近。
+| 指标 | v1 obs norm | v2 KL 0.03 | v3 KL 0.06 |
+| --- | ---: | ---: | ---: |
+| evaluation mean return | 276.612 | 244.985 | 267.642 |
+| evaluation std | 6.004 | 8.967 | 21.591 |
+| tail approx KL mean | 0.0934 | 0.0350 | 0.0645 |
+| tail clip fraction mean | 0.5028 | 0.2863 | 0.4302 |
+| tail value loss mean | 109.38 | 552.53 | 156.09 |
+| tail update epochs used mean | 10.0 | 3.45 | 5.80 |
 
-## 本节完成标准
+观察：
 
-- `ppo_baseline_v3_obsnorm_kl006_seed0` 实验记录通过 Git 推回。
-- 根据 v1/v2/v3 判断下一节方向：
-  - 如果 v3 兼顾性能和 KL：进入更长训练。
-  - 如果 v3 仍退化：考虑不使用 KL early stopping，改调 learning rate 或 update epochs。
+- `target_kl=0.06` 明显好于 `0.03`，评估均值从 `244.985` 回升到 `267.642`。
+- KL 和 clip fraction 介于 v1 与 v2 之间，说明 update control 方向有效。
+- value loss 恢复到接近 v1 的水平，说明 critic 不再像 v2 那样训练不足。
+- 但 v3 仍低于 v1，且评估波动更大。
+- tail 中 early stopping 仍全部触发，说明 KL 控制仍会限制训练步幅。
+
+## 本节结论
+
+- `target_kl=0.06` 是比 `0.03` 更合理的阈值。
+- 但当前 `100k` 短训下，最强配置仍是 `observation normalization + no target_kl`。
+- 暂时不应把 KL early stopping 作为主线长训配置。
+
+## 下一节
+
+进入：
+
+- `notes/07_ppo_long_obsnorm_training.md`
+
+下一节目标：
+
+1. 使用当前最强短训配置：observation normalization，不启用 target KL。
+2. 将训练规模提升到 `3M` timesteps。
+3. 得到一条真正适合分析学习曲线、稳定性和最终表现的长训 baseline。

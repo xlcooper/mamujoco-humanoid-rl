@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.2 - 2026-06-23
+
+- 做了什么：分析 `ppo_baseline_v3_obsnorm_kl006_seed0` 真实结果，将 `notes/06_ppo_kl_target_tuning.md` 固化为已完成总结，并新增 `notes/07_ppo_long_obsnorm_training.md`。
+- 为什么：`target_kl=0.06` 比 `0.03` 更合理，但短训表现仍未超过 v1；下一步应使用当前最强配置 `observation normalization + no target_kl` 做 `3M` timesteps 长训练。
+
 ## v0.3.1 - 2026-06-23
 
 - 做了什么：分析 `ppo_baseline_v2_obsnorm_kl_seed0` 真实结果，将 `notes/05_ppo_update_control.md` 固化为已完成总结，并新增 `notes/06_ppo_kl_target_tuning.md`。
