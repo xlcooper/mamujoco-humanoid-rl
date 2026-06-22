@@ -23,6 +23,7 @@ class PPOConfig:
     value_coef: float = 0.5
     entropy_coef: float = 0.0
     max_grad_norm: float = 0.5
+    target_kl: float | None = None
 
 
 class ActorCritic(nn.Module):
@@ -208,6 +209,8 @@ def update_ppo(
         "approx_kl": [],
         "clip_fraction": [],
     }
+    early_stopped = False
+    epochs_used = 0
 
     advantages = buffer.advantages
 
@@ -215,7 +218,9 @@ def update_ppo(
     normalized_advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
     buffer.advantages = normalized_advantages.astype(np.float32)
 
-    for _ in range(update_epochs):
+    for epoch_index in range(update_epochs):
+        epochs_used = epoch_index + 1
+
         for batch in buffer.get_batches(batch_size):
             _, new_log_probs, entropy, new_values = agent.get_action_and_value(
                 batch["observations"],
@@ -257,4 +262,14 @@ def update_ppo(
             losses["approx_kl"].append(float(approx_kl.item()))
             losses["clip_fraction"].append(float(clip_fraction.item()))
 
-    return {name: float(np.mean(values)) for name, values in losses.items()}
+        # 一个 epoch 结束后检查 KL，超过阈值就停止后续 epoch。
+        if config.target_kl is not None:
+            mean_kl = float(np.mean(losses["approx_kl"]))
+            if mean_kl > config.target_kl:
+                early_stopped = True
+                break
+
+    metrics = {name: float(np.mean(values)) for name, values in losses.items()}
+    metrics["update_epochs_used"] = float(epochs_used)
+    metrics["early_stopped"] = float(early_stopped)
+    return metrics

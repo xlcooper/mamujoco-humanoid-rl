@@ -38,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--value-coef", type=float, default=0.5)
     parser.add_argument("--entropy-coef", type=float, default=0.0)
     parser.add_argument("--max-grad-norm", type=float, default=0.5)
+    parser.add_argument("--target-kl", type=float, default=None)
     parser.add_argument("--run-root", default=default_run_root())
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--save-every-updates", type=int, default=10)
@@ -96,6 +97,8 @@ def write_header_if_needed(csv_path: Path) -> None:
                 "entropy",
                 "approx_kl",
                 "clip_fraction",
+                "update_epochs_used",
+                "early_stopped",
             ]
         )
 
@@ -117,6 +120,8 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
                 row["entropy"],
                 row["approx_kl"],
                 row["clip_fraction"],
+                row["update_epochs_used"],
+                row["early_stopped"],
             ]
         )
 
@@ -183,6 +188,7 @@ def main() -> None:
         value_coef=args.value_coef,
         entropy_coef=args.entropy_coef,
         max_grad_norm=args.max_grad_norm,
+        target_kl=args.target_kl,
     )
 
     run_config = vars(args).copy()
@@ -344,7 +350,9 @@ def main() -> None:
                 "policy_loss={policy_loss:.4f} "
                 "value_loss={value_loss:.4f} "
                 "entropy={entropy:.4f} "
-                "approx_kl={approx_kl:.6f}".format(**row)
+                "approx_kl={approx_kl:.6f} "
+                "epochs_used={update_epochs_used:.0f} "
+                "early_stop={early_stopped:.0f}".format(**row)
             )
 
             should_save = args.save_every_updates > 0 and update % args.save_every_updates == 0

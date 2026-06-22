@@ -77,7 +77,42 @@ episode=5 return=275.974 length=53
 mean_return=276.612 std_return=6.004
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 v0 的直接对比
+
+| 指标 | v0 no obs norm | v1 obs norm | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 243.977 | 276.612 | v1 提升约 13.4% |
+| evaluation std | 7.738 | 6.004 | v1 评估更稳定 |
+| evaluation episode length | 44-47 | 50-54 | v1 存活时间更长 |
+| tail value loss | 267-557 左右 | 67-216 左右 | obs norm 明显减轻 critic 压力 |
+| tail entropy | 23.78 左右 | 24.22-24.55 | v1 探索没有塌缩 |
+| tail approx KL | 0.02-0.026 | 0.08-0.12 | v1 更新幅度明显过大 |
+| tail clip fraction | 0.19-0.26 | 0.45-0.57 | 大量样本被 clip，PPO 更新过猛 |
+
+### 正向结果
+
+- Observation normalization 有明显收益：评估均值从 `243.977` 提升到 `276.612`。
+- Critic 拟合压力明显下降，tail 中 value loss 经常低于 `130`，最低约 `65.970`。
+- rolling episode return 提供了更直观的训练过程信号，后续分析比只看 last episode 更可靠。
+
+### 暴露的问题
+
+- `approx_kl` 显著偏高。v0 大多在 `0.02` 附近，v1 多次超过 `0.09`，最高约 `0.1197`。
+- `clip_fraction` 过高。接近一半样本被 PPO clip，说明每次 update 的策略变化太大。
+- v1 的 return 仍有波动，例如 tail 中 episode return 从 `109.108` 到 `614.427` 都出现过。
+
+## 结论
+
+- Observation normalization 是有效改进，应保留。
+- 当前主要问题从“输入尺度和 critic 压力”转向“PPO update 幅度过大”。
+- 下一步不应直接加长训练；应先加入 KL early stopping 或降低 update 强度，让 PPO 更新更保守。
+
+## 下一步决策
+
+进入 `notes/05_ppo_update_control.md`：
+
+1. 增加 `target_kl` 参数。
+2. PPO update 中如果 approximate KL 超过阈值，提前停止当前 update 的后续 epoch。
+3. 重新跑 obs norm + KL control 的 v2，对比 v1。

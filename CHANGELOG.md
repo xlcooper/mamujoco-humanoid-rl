@@ -1,5 +1,15 @@
 # 更新记录
 
+## v0.3.0 - 2026-06-23
+
+- 做了什么：为 PPO update 增加 `--target-kl` early stopping，并在日志中记录 `update_epochs_used` 和 `early_stopped`。
+- 为什么：v1 的 observation normalization 有效，但 approx KL 和 clip fraction 过高，需要控制每轮 PPO update 的策略变化幅度。
+
+## v0.2.9 - 2026-06-23
+
+- 做了什么：分析 `ppo_baseline_v1_obsnorm_seed0` 真实结果，将 `notes/04_ppo_diagnostics_and_obs_norm.md` 固化为已完成总结，并新增 `notes/05_ppo_update_control.md`。
+- 为什么：observation normalization 提升了评估表现并降低 value loss，但 KL 和 clip fraction 过高，下一步需要控制 PPO update 幅度。
+
 ## v0.2.8 - 2026-06-23
 
 - 做了什么：实现 observation normalization，checkpoint 保存/加载归一化统计量，并为训练日志增加 rolling episode return 和 rolling episode length。
