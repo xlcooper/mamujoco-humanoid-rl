@@ -94,6 +94,12 @@ Latest lightweight experiment record:
 
 - `experiment_records/ppo_smoke_test_001.md`
 
+Create a lightweight PPO run record on AutoDL:
+
+```bash
+python scripts/summarize_ppo_run.py --run-dir <run-dir> --eval-output <eval-output.txt> --output experiment_records/<name>.md
+```
+
 ## Key References
 
 - Farama MaMuJoCo Humanoid: <https://robotics.farama.org/envs/MaMuJoCo/ma_humanoid/>

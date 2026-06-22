@@ -88,29 +88,34 @@ python src/train_ppo.py \
   --run-name ppo_baseline_v0_seed0
 ```
 
-训练结束后评估：
+训练结束后评估，并把评估输出保存成轻量文本文件：
 
 ```bash
 python src/evaluate.py \
   --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/checkpoints/agent_final.pt \
-  --episodes 5
+  --episodes 5 \
+  | tee /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/eval_output.txt
 ```
 
-检查轻量输出：
+生成 Git 管理的实验记录：
 
 ```bash
-tail -n 20 /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/metrics.csv
-cat /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/config.json
+python scripts/summarize_ppo_run.py \
+  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0 \
+  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/eval_output.txt \
+  --output experiment_records/ppo_baseline_v0_seed0.md
 ```
 
-## 你需要回传
+提交轻量记录，不提交 run 目录：
 
-把下面内容贴回来，之后整理到 `experiment_records/ppo_baseline_v0_seed0.md`：
+```bash
+git add experiment_records/ppo_baseline_v0_seed0.md
+git commit -m "Record PPO baseline v0 seed0 summary"
+git pull --rebase
+git push
+```
 
-1. 训练最后 20 行 `metrics.csv`。
-2. `config.json`。
-3. evaluate 输出。
-4. 如果报错，贴 traceback 最后 80 行。
+如果报错，可以先把 traceback 贴到对话里；如果没报错，就通过 Git 管理结果，我本地 pull 后分析。
 
 ## 分析重点
 

@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.3 - 2026-06-23
+
+- 做了什么：新增 `scripts/summarize_ppo_run.py`，并更新 `notes/02_minimal_ppo_baseline.md`，要求通过 Git 提交轻量实验记录，而不是把训练结果贴回聊天。
+- 为什么：项目推进和实验结论应由 notes 与 experiment records 管理；对话只用于管理协调和疑难交流。
+
 ## v0.2.2 - 2026-06-23
 
 - 做了什么：更新 `notes/02_minimal_ppo_baseline.md`，把当前推进任务明确为 `ppo_baseline_v0_seed0` 中等长度训练，并写入运行、评估和回传输出命令。
