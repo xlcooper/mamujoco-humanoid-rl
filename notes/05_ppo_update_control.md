@@ -1,4 +1,4 @@
-# 05 当前任务：PPO Update Control
+# 05 已完成：PPO Update Control
 
 ## 本节目标
 
@@ -9,98 +9,67 @@
 - `approx_kl` 多次达到 `0.08` 到 `0.12`
 - `clip_fraction` 经常在 `0.45` 到 `0.57`
 
-这说明 PPO 的 clip 机制频繁生效，策略更新幅度偏大。下一步要加入 KL early stopping。
+因此本节加入 KL early stopping。
 
-## 为什么要做 KL Early Stopping
+## 已完成代码
 
-PPO 的目标是“不要让新策略离旧策略太远”。clip objective 是一种限制方式，但如果很多样本都被 clip，说明更新已经太激进。
+1. `src/ppo.py`
+   - `PPOConfig` 增加 `target_kl`
+   - PPO update 每个 epoch 后检查 approximate KL
+   - 超过阈值时提前停止后续 epoch
+2. `src/train_ppo.py`
+   - 新增命令行参数 `--target-kl`
+   - 训练日志新增 `update_epochs_used`
+   - 训练日志新增 `early_stopped`
 
-KL early stopping 的想法很直接：
+## 实验记录
+
+- `experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md`
+
+核心配置：
+
+- seed: `0`
+- total timesteps: `100000`
+- normalize observations: `true`
+- target KL: `0.03`
+- rollout steps: `2048`
+- batch size: `256`
+- update epochs: `10`
+- learning rate: `3e-4`
+
+## 评估结果
 
 ```text
-每轮 PPO update 内部有多个 epoch
-如果发现 new policy 和 old policy 的 KL 已经超过阈值
-就提前停止这个 update
+episode=1 return=251.392 length=48
+episode=2 return=227.405 length=44
+episode=3 return=246.576 length=48
+episode=4 return=251.100 length=48
+episode=5 return=248.454 length=48
+mean_return=244.985 std_return=8.967
 ```
 
-这样可以避免策略在一次 update 里跳太远。
+## 本节分析
 
-## 已完成代码任务
+- KL early stopping 生效，`approx_kl` 从 v1 的 `0.08-0.12` 降到约 `0.03-0.05`。
+- `clip_fraction` 从 v1 的 `0.45-0.57` 降到约 `0.25-0.33`。
+- 但 evaluation mean return 从 v1 的 `276.612` 降到 `244.985`。
+- tail 中 early stopping 几乎每次都触发，`update_epochs_used` 常只有 2-4。
+- `target_kl=0.03` 太保守，限制了 actor 和 critic 的学习。
 
-1. 已在训练参数里增加：
-   - `--target-kl`
-2. 已在 PPO update 中：
-   - 统计 minibatch approximate KL
-   - 如果 mean KL 超过 `target_kl`，提前结束当前 update 的后续 epoch
-3. 已在日志里增加：
-   - 实际使用的 update epoch 数
-   - 是否触发 early stop
+## 本节结论
 
-相关代码：
+- KL early stopping 机制正确。
+- `target_kl=0.03` 对当前 Humanoid PPO baseline 太紧。
+- 下一步应调大 target KL，而不是丢掉 update control。
 
-- `src/ppo.py`
-- `src/train_ppo.py`
+## 下一节
 
-## 本节实验任务
+进入：
 
-现在运行 v2：
+- `notes/06_ppo_kl_target_tuning.md`
 
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
+下一节目标：
 
-python src/train_ppo.py \
-  --total-timesteps 100000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_baseline_v2_obsnorm_kl_seed0 \
-  --normalize-observations \
-  --target-kl 0.03
-```
-
-评估：
-
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_baseline_v2_obsnorm_kl_seed0/checkpoints/agent_final.pt \
-  --episodes 5 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_baseline_v2_obsnorm_kl_seed0/eval_output.txt
-```
-
-生成 Git 管理的实验记录：
-
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_baseline_v2_obsnorm_kl_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_baseline_v2_obsnorm_kl_seed0/eval_output.txt \
-  --output experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md
-```
-
-提交轻量记录：
-
-```bash
-git add experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md
-git commit -m "Record PPO baseline v2 obs norm KL seed0 summary"
-git pull --rebase
-git push
-```
-
-## 对比重点
-
-和 v1 对比：
-
-- `approx_kl` 是否下降到更合理范围。
-- `clip_fraction` 是否明显下降。
-- evaluation mean return 是否保持或提升。
-- value loss 是否仍低于 v0。
-- early stop 是否频繁触发。
-
-## 本节完成标准
-
-- KL early stopping 代码完成并有中文注释。
-- v2 实验记录通过 Git 推回。
-- 根据 v1/v2 对比决定下一节方向：
-  - 如果 KL 降低且性能不掉：进入更长训练。
-  - 如果性能下降明显：调 target KL、learning rate 或 update epochs。
+1. 保留 observation normalization。
+2. 将 target KL 调到 `0.06`。
+3. 测试是否能在控制 KL 的同时恢复 v1 的表现。

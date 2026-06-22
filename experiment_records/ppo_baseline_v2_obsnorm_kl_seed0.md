@@ -78,7 +78,42 @@ episode=5 return=248.454 length=48
 mean_return=244.985 std_return=8.967
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 v1 的直接对比
+
+| 指标 | v1 obs norm | v2 obs norm + target_kl=0.03 | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 276.612 | 244.985 | v2 明显下降，接近 v0 |
+| evaluation std | 6.004 | 8.967 | v2 评估波动略大 |
+| evaluation episode length | 50-54 | 44-48 | v2 存活时间下降 |
+| tail approx KL | 0.08-0.12 | 0.03-0.05 | KL control 生效 |
+| tail clip fraction | 0.45-0.57 | 0.25-0.33 | clip fraction 明显下降 |
+| update epochs used | 10 固定 | 2-7 | early stopping 频繁触发 |
+| early stopped | 无 | 全部 tail update 触发 | target_kl=0.03 太紧 |
+
+### 正向结果
+
+- KL early stopping 功能有效：`approx_kl` 明显下降。
+- `clip_fraction` 从 v1 接近一半样本被 clip，降到约 `0.25-0.33`。
+- 日志中的 `update_epochs_used` 和 `early_stopped` 能清楚显示 update control 是否生效。
+
+### 问题
+
+- `target_kl=0.03` 过于保守，几乎每个 update 都提前停止。
+- 评估均值从 v1 的 `276.612` 降到 `244.985`，基本回到 v0 水平。
+- value loss 在 tail 中经常高于 v1，说明 critic 的训练也被较少 epoch 影响。
+
+## 结论
+
+- KL early stopping 的机制是有效的，但当前阈值太严格。
+- 不能简单认为“KL 越低越好”；PPO 需要在稳定和学习速度之间折中。
+- 下一步应保留 observation normalization，把 target KL 调宽一些，测试更温和的 update control。
+
+## 下一步决策
+
+进入 `notes/06_ppo_kl_target_tuning.md`：
+
+1. 保留 observation normalization。
+2. 将 `target_kl` 从 `0.03` 调整到 `0.06`。
+3. 跑 v3，观察是否在降低 KL 的同时恢复 v1 的评估表现。

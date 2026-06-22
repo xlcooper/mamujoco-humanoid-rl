@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.1 - 2026-06-23
+
+- 做了什么：分析 `ppo_baseline_v2_obsnorm_kl_seed0` 真实结果，将 `notes/05_ppo_update_control.md` 固化为已完成总结，并新增 `notes/06_ppo_kl_target_tuning.md`。
+- 为什么：`target_kl=0.03` 成功降低 KL 和 clip fraction，但过度限制学习，下一步需要调宽 KL 阈值做对比。
+
 ## v0.3.0 - 2026-06-23
 
 - 做了什么：为 PPO update 增加 `--target-kl` early stopping，并在日志中记录 `update_epochs_used` 和 `early_stopped`。
