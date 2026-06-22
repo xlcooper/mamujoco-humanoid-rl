@@ -31,3 +31,7 @@ events.out.tfevents*
 .DS_Store
 Thumbs.db
 
+# Local project-management references and personal skill drafts
+autodl-project-manager/
+参考readme.md
+README copy.md

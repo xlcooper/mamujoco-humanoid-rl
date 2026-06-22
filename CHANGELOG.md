@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.5 - 2026-06-23
+
+- 做了什么：参考 `参考readme.md` 的最终形态重写项目 README，强化教程推进、实验记录和 Git 管理规则；将 `autodl-project-manager/`、`参考readme.md`、`README copy.md` 排除出项目 Git 管理。
+- 为什么：README 应让新对话 AI 直接理解项目推进方式；skill 和参考文档属于本地管理资料，不应作为当前项目源码提交。
+
 ## v0.2.4 - 2026-06-23
 
 - 做了什么：将 README 重写为中文项目规则；将 `notes/02_minimal_ppo_baseline.md` 固化为已完成总结；新增 `notes/03_ppo_baseline_v0.md` 作为当前任务。
