@@ -43,6 +43,7 @@ Before editing, read these files first:
 ## Directory Conventions
 
 - `notes/`: tutorial lessons, decisions, questions, and stage summaries.
+- `experiment_records/`: lightweight experiment summaries, commands, metrics excerpts, and conclusions.
 - `src/`: code that belongs to the project.
 - `server/`: AutoDL helper scripts and lightweight environment reports.
 - `scripts/`: local utility scripts when needed.
@@ -88,6 +89,10 @@ Short PPO smoke training on AutoDL:
 ```bash
 python src/train_ppo.py --total-timesteps 4096 --rollout-steps 1024 --batch-size 256 --update-epochs 2 --run-name smoke_ppo
 ```
+
+Latest lightweight experiment record:
+
+- `experiment_records/ppo_smoke_test_001.md`
 
 ## Key References
 

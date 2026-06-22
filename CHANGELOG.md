@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.1 - 2026-06-23
+
+- 做了什么：新增 `experiment_records/ppo_smoke_test_001.md`，记录 PPO smoke test 的训练命令、评估命令、关键指标摘要和观察；同时清理 `notes/02_minimal_ppo_baseline.md` 中的大段终端输出。
+- 为什么：实验结论应由 Git 管理，但只保留足够分析和复现的轻量摘要，大型产物继续留在 AutoDL 数据盘。
+
 ## v0.2.0 - 2026-06-23
 
 - 做了什么：新增手写 PPO baseline 初版，包括单智能体环境适配器、Actor-Critic、Gaussian policy、rollout buffer、GAE、PPO clipped update、训练入口和评估入口；同时补充 README 代码风格约定和短训练命令。

@@ -36,7 +36,7 @@
    - minibatch size
    - update epochs
    - CSV 日志
-4. 当前要在 AutoDL 上做一次短训练，确认不会崩。
+4. 已在 AutoDL 上完成一次短训练和短评估，确认训练链路可以跑通。
 
 ## 第一版不做
 
@@ -67,7 +67,7 @@
 
 上一节生成的 `server/autodl_host_report.txt` 已经进入 Git，稳定环境事实已整理到 `AUTODL_HOST_BASELINE.md`。
 
-现在可以在服务器上运行短训练：
+短训练已通过。运行命令：
 
 ```bash
 cd /root/autodl-tmp/Humanoid
@@ -83,3 +83,19 @@ python src/evaluate.py --checkpoint /root/autodl-tmp/Humanoid-runs/smoke_ppo/che
 ```
 
 把训练输出和是否生成 `metrics.csv` 贴回来。短训练结果只用于检查代码链路，不作为性能结论。
+
+结果已经整理到 `experiment_records/ppo_smoke_test_001.md`。
+
+## 当前结论
+
+- 手写 PPO baseline 的训练入口可以运行到 `training_done=true`。
+- `agent_final.pt` 可以被 `src/evaluate.py` 加载并完成 2 episode 评估。
+- 这次只是 smoke test，不作为算法性能结论。
+
+## 下一步
+
+下一节建议做一次更完整的短基线：
+
+1. 确认 `metrics.csv` 和 `config.json` 的内容。
+2. 跑一个更长但仍可控的 baseline，例如 `100_000` 到 `300_000` timesteps。
+3. 根据训练曲线决定是否先加 observation normalization / reward scaling。
