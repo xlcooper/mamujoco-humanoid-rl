@@ -13,11 +13,11 @@ The project should show algorithm understanding, implementation ability, experim
 
 ## Current Stage
 
-Stage 0 to Stage 1 transition:
+Stage 1: ordinary PPO baseline preparation.
 
-- Project management skeleton is being created.
-- AutoDL host baseline has not been recorded yet.
-- First runnable target is an environment smoke test, then ordinary PPO.
+- MaMuJoCo Humanoid smoke tests passed for `partitioning=None` and `partitioning="9|8"`.
+- Current lesson: `notes/02_minimal_ppo_baseline.md`.
+- AutoDL host baseline has not been recorded locally yet because `server/autodl_host_report.txt` still needs to be committed and pushed from the server.
 
 ## New AI Handoff
 
@@ -33,7 +33,8 @@ Before editing, read these files first:
 ## Documents
 
 - `notes/00_project_roadmap.md`: project route, experiment ladder, resume deliverables.
-- `notes/01_project_start_and_env_check.md`: first lesson, AutoDL and MaMuJoCo smoke test.
+- `notes/01_project_start_and_env_check.md`: completed AutoDL and MaMuJoCo smoke test result.
+- `notes/02_minimal_ppo_baseline.md`: current lesson, ordinary PPO minimal training loop.
 - `server/check_autodl_host.sh`: script for collecting stable AutoDL environment facts.
 - `src/check_mamujoco_env.py`: quick MaMuJoCo Humanoid API smoke test.
 - `requirements.txt`: starter dependencies, to be refined after AutoDL reports real versions.
@@ -79,4 +80,3 @@ python src/check_mamujoco_env.py --partitioning "9|8" --steps 5
 - Farama MaMuJoCo Humanoid: <https://robotics.farama.org/envs/MaMuJoCo/ma_humanoid/>
 - Farama MaMuJoCo overview: <https://robotics.farama.org/envs/MaMuJoCo/>
 - Farama Gymnasium-Robotics installation: <https://robotics.farama.org/content/installation/>
-

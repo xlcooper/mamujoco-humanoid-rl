@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.6 - 2026-06-23
+
+- 做了什么：将 `notes/01_project_start_and_env_check.md` 更新为已完成结果记录，并新增 `notes/02_minimal_ppo_baseline.md` 作为下一节普通 PPO 最小训练闭环。
+- 为什么：单智能体和 `9|8` 分区 smoke test 都已通过，项目可以从环境检查进入 PPO baseline 阶段。
+
 ## v0.1.5 - 2026-06-23
 
 - 做了什么：精简 `notes/01_project_start_and_env_check.md`，把当前执行命令放到最前面，并将 EGL、viewer、旧 warning 等内容降级为说明。
