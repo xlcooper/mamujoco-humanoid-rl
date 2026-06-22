@@ -1,0 +1,13 @@
+# Starter dependencies for the first AutoDL environment check.
+# Refine or lock versions after the real AutoDL host report is available.
+gymnasium-robotics
+mujoco
+pettingzoo
+numpy
+torch
+tensorboard
+tqdm
+matplotlib
+pandas
+pytest
+

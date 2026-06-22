@@ -1,0 +1,4 @@
+interface:
+  display_name: "AutoDL Project Manager"
+  short_description: "Set up and maintain AutoDL-based project management files."
+  default_prompt: "Use this skill to design or maintain an AutoDL project management structure."
