@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.4 - 2026-06-23
+
+- 做了什么：更新 `notes/01_project_start_and_env_check.md`，记录当前服务器包版本、环境报告文件未生成的原因、拉取 smoke test 修复提交的检查步骤，以及 Adroit warning / OpenGL display 报错的处理判断。
+- 为什么：让 lesson note 继续贴合当前真实推进状态，减少重复踩坑。
+
 ## v0.1.3 - 2026-06-23
 
 - 做了什么：修正 `src/check_mamujoco_env.py` 的 MaMuJoCo 环境创建方式，改为官方支持的位置参数调用。

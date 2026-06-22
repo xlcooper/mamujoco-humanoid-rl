@@ -7,6 +7,8 @@
 - 你服务器上以前跑过 Fetch 项目，可能已有 Gymnasium-Robotics / MuJoCo 相关 conda 环境。
 - 这次 Humanoid 项目建议使用独立环境，避免污染 Fetch 项目，也方便以后写复现实验说明。
 - 旧 Fetch 项目之前误放在系统盘，如果确认已完整推送到远端，可以迁移或删除，避免系统盘被训练产物占满。
+- 已确认的服务器包版本：`torch 2.12.1+cu130`、`gymnasium 1.3.0`、`gymnasium_robotics 1.4.2`、`mujoco 3.9.0`、`pettingzoo 1.26.1`、`tensorboard 2.20.0`。
+- 当前已知问题：第一次提交环境报告时没有生成 `server/autodl_host_report.txt` 文件；第一次 smoke test 使用的是旧脚本，还没有拉到 `489ea96 Fix MaMuJoCo smoke test creation`。
 
 这一节的目标不是训练 PPO，而是把服务器工作区和 Python 环境整理干净，并确认 MaMuJoCo Humanoid 能正常 `reset` / `step`。
 
@@ -112,6 +114,13 @@ pip install -r requirements.txt
 bash server/check_autodl_host.sh | tee server/autodl_host_report.txt
 ```
 
+注意：只运行 `bash server/check_autodl_host.sh` 会把报告打印到终端，但不会保存成文件。运行后先确认文件存在：
+
+```bash
+ls -lh server/autodl_host_report.txt
+tail -n 40 server/autodl_host_report.txt
+```
+
 这份报告主要用于后续写 `AUTODL_HOST_BASELINE.md`。报告里不要加入 SSH、VNC 密码、token 或任何私密信息。
 
 如果你想直接从服务器提交报告：
@@ -126,6 +135,19 @@ git push
 如果提交不方便，就把关键输出贴回来。
 
 ## Step 5：运行 MaMuJoCo 冒烟测试
+
+先确认服务器已经拉到最新脚本：
+
+```bash
+git pull --rebase
+git log --oneline -3
+```
+
+最近提交里应该能看到：
+
+```text
+489ea96 Fix MaMuJoCo smoke test creation
+```
 
 先测单智能体版本，这是普通 PPO baseline 会用的目标：
 
@@ -145,6 +167,11 @@ python src/check_mamujoco_env.py --partitioning "9|8" --steps 5
 - 能打印 observation/action space
 - 随机动作能连续 step
 - reward 不需要好看，因为当前不是训练
+
+已知非阻塞信息：
+
+- `AdroitHand... reward functions were updated...` 是 Gymnasium-Robotics 关于 Adroit 环境版本复现的 warning，当前 Humanoid smoke test 可以先忽略。
+- `Error: unable to open display :1` 来自 `glxinfo`，说明当前没有可用显示窗口；无渲染训练和 headless smoke test 不依赖它。后续如果要录视频或渲染，再单独处理 `MUJOCO_GL=egl`。
 
 ## Step 6：旧 Fetch 项目怎么处理
 
