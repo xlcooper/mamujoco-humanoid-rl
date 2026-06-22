@@ -5,6 +5,7 @@ from typing import Any
 
 
 def parse_partitioning(raw_value: str) -> str | None:
+    # 命令行里用 "none" 表示单智能体 Humanoid，对应 MaMuJoCo 的 partitioning=None。
     normalized = raw_value.strip().lower()
     if normalized in {"none", "null", "single", "single-agent"}:
         return None
@@ -12,12 +13,14 @@ def parse_partitioning(raw_value: str) -> str | None:
 
 
 def summarize_space(space: Any) -> str:
+    # 冒烟测试只需要看空间类型、shape 和 dtype，避免打印过长内容。
     shape = getattr(space, "shape", None)
     dtype = getattr(space, "dtype", None)
     return f"{space.__class__.__name__}(shape={shape}, dtype={dtype})"
 
 
 def summarize_observation(observation: Any) -> str:
+    # observation 可能是 ndarray，也可能是 dict；这里统一压缩成可读摘要。
     shape = getattr(observation, "shape", None)
     dtype = getattr(observation, "dtype", None)
     if shape is not None:
@@ -77,6 +80,7 @@ def main() -> None:
 
     try:
         observations, infos = env.reset(seed=args.seed)
+        # reset 后先打印 agents 和空间信息，确认 API 形态符合 PPO 代码假设。
         print(f"domain={args.domain}, task={args.task}, partitioning={partitioning}")
         print(f"possible_agents={list(env.possible_agents)}")
         print(f"active_agents={list(env.agents)}")
@@ -90,6 +94,7 @@ def main() -> None:
         total_rewards = {agent: 0.0 for agent in env.possible_agents}
 
         for step in range(1, args.steps + 1):
+            # 随机动作只用于验证 step 链路，不代表策略性能。
             actions = {agent: env.action_space(agent).sample() for agent in env.agents}
             observations, rewards, terminations, truncations, infos = env.step(actions)
 

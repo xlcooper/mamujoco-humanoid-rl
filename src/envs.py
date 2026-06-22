@@ -8,6 +8,8 @@ import numpy as np
 
 @dataclass
 class StepResult:
+    """把环境一步返回值整理成 PPO 训练更好读的结构。"""
+
     observation: np.ndarray
     reward: float
     done: bool
@@ -15,7 +17,7 @@ class StepResult:
 
 
 class SingleAgentMaMuJoCoEnv:
-    """Small adapter from PettingZoo Parallel API to a single-agent PPO loop."""
+    """把 MaMuJoCo 的 PettingZoo Parallel API 适配成单智能体 PPO 接口。"""
 
     def __init__(
         self,
@@ -33,6 +35,8 @@ class SingleAgentMaMuJoCoEnv:
         self.action_space = None
 
     def reset(self) -> np.ndarray:
+        # MaMuJoCo 返回 dict：{agent_name: observation}。
+        # partitioning=None 时只有 agent_0，所以这里转成单个 observation。
         observations, infos = self.env.reset(seed=self.seed)
         self.seed += 1
 
@@ -53,6 +57,7 @@ class SingleAgentMaMuJoCoEnv:
         if self.agent is None or self.action_space is None:
             raise RuntimeError("Call reset() before step().")
 
+        # 高斯策略采样出来的动作可能略超环境边界，送入 MuJoCo 前先裁剪。
         clipped_action = np.clip(action, self.action_space.low, self.action_space.high)
         actions = {self.agent: clipped_action.astype(np.float32)}
 
@@ -64,7 +69,7 @@ class SingleAgentMaMuJoCoEnv:
         done = terminated or truncated
 
         if done:
-            # PPO handles reset outside this method. The returned observation is unused.
+            # done 后训练主循环会 reset，这里的 observation 只是占位。
             observation = np.zeros(self.observation_space.shape, dtype=np.float32)
         else:
             observation = observations[self.agent].astype(np.float32)
@@ -85,6 +90,7 @@ class SingleAgentMaMuJoCoEnv:
 
 
 def make_humanoid_single_agent_env(seed: int = 0) -> SingleAgentMaMuJoCoEnv:
+    # Stage 1 的普通 PPO baseline 使用单智能体 Humanoid。
     return SingleAgentMaMuJoCoEnv(
         domain="Humanoid",
         partitioning=None,

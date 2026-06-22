@@ -15,6 +15,7 @@ from ppo import ActorCritic, PPOConfig, RolloutBuffer, update_ppo
 
 
 def default_run_root() -> str:
+    # AutoDL 上默认把运行产物放到数据盘；本地调试时退回 runs/。
     if Path("/root/autodl-tmp").exists():
         return "/root/autodl-tmp/Humanoid-runs"
     return "runs"
@@ -49,6 +50,7 @@ def choose_device(raw_device: str) -> torch.device:
 
 
 def set_seed(seed: int) -> None:
+    # 固定随机种子，方便复现实验差异。
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -67,6 +69,7 @@ def create_run_dir(run_root: str, run_name: str | None, seed: int) -> Path:
 
 
 def write_header_if_needed(csv_path: Path) -> None:
+    # metrics.csv 是 Git 实验记录的原始来源之一，但完整文件留在 AutoDL。
     if csv_path.exists():
         return
 
@@ -112,6 +115,7 @@ def main() -> None:
     set_seed(args.seed)
     device = choose_device(args.device)
 
+    # 每次训练单独一个 run_dir，里面保存 config、metrics 和 checkpoints。
     run_dir = create_run_dir(args.run_root, args.run_name, args.seed)
     metrics_path = run_dir / "metrics.csv"
     checkpoint_dir = run_dir / "checkpoints"
@@ -121,6 +125,7 @@ def main() -> None:
     env = make_humanoid_single_agent_env(seed=args.seed)
     observation = env.reset()
 
+    # 从环境空间自动读取维度，避免把 348/17 写死在训练代码里。
     observation_dim = int(np.prod(env.observation_space.shape))
     action_dim = int(np.prod(env.action_space.shape))
 
@@ -141,6 +146,8 @@ def main() -> None:
     run_config["observation_dim"] = observation_dim
     run_config["action_dim"] = action_dim
     run_config["device"] = str(device)
+
+    # config.json 记录本次训练设置，后续 experiment_records 会引用它。
     with (run_dir / "config.json").open("w", encoding="utf-8") as file:
         json.dump(run_config, file, indent=2)
 
@@ -163,6 +170,7 @@ def main() -> None:
         raise ValueError("--total-timesteps must be at least --rollout-steps.")
 
     try:
+        # 外层循环：每个 update 先采样一段 rollout，再用这段数据更新策略。
         for update in range(1, total_updates + 1):
             buffer = RolloutBuffer(
                 rollout_steps=args.rollout_steps,
@@ -174,6 +182,7 @@ def main() -> None:
             rollout_rewards: list[float] = []
             last_done = False
 
+            # Rollout 阶段：用当前策略和环境交互，收集 PPO 训练所需数据。
             for _ in range(args.rollout_steps):
                 observation_tensor = torch.as_tensor(
                     observation,
@@ -182,7 +191,7 @@ def main() -> None:
                 ).unsqueeze(0)
 
                 with torch.no_grad():
-                    # Rollout phase: sample action and store log_prob/value from old policy.
+                    # 采样时保存 old log_prob 和 old value，之后 PPO update 会用到。
                     action_tensor, log_prob_tensor, _, value_tensor = agent.get_action_and_value(
                         observation_tensor
                     )
@@ -209,6 +218,7 @@ def main() -> None:
                 last_done = step_result.done
 
                 if step_result.done:
+                    # episode 结束后记录最近一局回报，并重置环境进入下一局。
                     last_episode_return = episode_return
                     last_episode_length = episode_length
                     observation = env.reset()
@@ -218,8 +228,10 @@ def main() -> None:
                     observation = step_result.observation
 
             if last_done:
+                # rollout 最后一步已经终止，不再 bootstrap value。
                 last_value = 0.0
             else:
+                # rollout 截断但 episode 未结束，用 critic 估计最后状态价值。
                 observation_tensor = torch.as_tensor(
                     observation,
                     dtype=torch.float32,
@@ -229,7 +241,7 @@ def main() -> None:
                     _, _, _, value_tensor = agent.get_action_and_value(observation_tensor)
                 last_value = float(value_tensor.item())
 
-            # GAE converts rollout rewards and values into PPO training targets.
+            # GAE 把 rewards + values 转成 advantage 和 return 两类训练目标。
             buffer.compute_returns_and_advantages(
                 last_value=last_value,
                 gamma=config.gamma,
@@ -245,6 +257,7 @@ def main() -> None:
                 update_epochs=args.update_epochs,
             )
 
+            # 训练日志：终端打印最近状态，CSV 保存完整 update 级指标。
             mean_reward = float(np.mean(rollout_rewards))
             row = {
                 "global_step": global_step,
@@ -269,6 +282,7 @@ def main() -> None:
 
             should_save = args.save_every_updates > 0 and update % args.save_every_updates == 0
             if should_save:
+                # 中间 checkpoint 方便长训练中断后查看，但不提交到 Git。
                 checkpoint_path = checkpoint_dir / f"agent_update_{update}.pt"
                 torch.save(agent.state_dict(), checkpoint_path)
 

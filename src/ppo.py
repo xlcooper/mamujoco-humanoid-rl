@@ -11,6 +11,8 @@ from torch.distributions import Normal
 
 @dataclass
 class PPOConfig:
+    """PPO 训练中会反复用到的核心超参数。"""
+
     observation_dim: int
     action_dim: int
     hidden_size: int = 256
@@ -24,9 +26,12 @@ class PPOConfig:
 
 
 class ActorCritic(nn.Module):
+    """共享骨干网络，分别输出策略分布和状态价值。"""
+
     def __init__(self, observation_dim: int, action_dim: int, hidden_size: int) -> None:
         super().__init__()
 
+        # backbone 把原始 observation 编码成隐向量，actor 和 critic 共用它。
         self.backbone = nn.Sequential(
             nn.Linear(observation_dim, hidden_size),
             nn.Tanh(),
@@ -34,19 +39,20 @@ class ActorCritic(nn.Module):
             nn.Tanh(),
         )
 
-        # Actor outputs the mean of a diagonal Gaussian policy.
+        # actor_mean 是连续动作高斯策略的均值 mu(s)。
         self.actor_mean = nn.Linear(hidden_size, action_dim)
 
-        # log_std is learned directly and shared across states in this first PPO version.
+        # 第一版先用状态无关的 log_std，简单、稳定、便于理解。
         self.actor_log_std = nn.Parameter(torch.zeros(action_dim))
 
-        # Critic predicts V(s), the expected discounted return from the observation.
+        # critic 输出 V(s)，也就是当前状态的预期折扣回报。
         self.critic = nn.Linear(hidden_size, 1)
 
     def forward(
         self,
         observations: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # 前向传播只负责算分布参数和价值，不在这里采样动作。
         hidden = self.backbone(observations)
         action_mean = self.actor_mean(hidden)
         action_log_std = self.actor_log_std.expand_as(action_mean)
@@ -60,13 +66,15 @@ class ActorCritic(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         action_mean, action_log_std, value = self.forward(observations)
         action_std = torch.exp(action_log_std)
+
+        # 每个动作维度一个 Normal，整体策略是对角高斯分布。
         distribution = Normal(action_mean, action_std)
 
         if actions is None:
-            # During rollout we sample from the current stochastic policy.
+            # 采样阶段：从当前随机策略中采样动作，用于探索。
             actions = distribution.sample()
 
-        # Continuous-control log probabilities are summed across action dimensions.
+        # PPO 需要动作的 log_prob；连续动作要把各维度 log_prob 相加。
         log_prob = distribution.log_prob(actions).sum(dim=-1)
         entropy = distribution.entropy().sum(dim=-1)
 
@@ -74,6 +82,8 @@ class ActorCritic(nn.Module):
 
 
 class RolloutBuffer:
+    """保存一段 rollout，之后一次性计算 GAE 并做 PPO update。"""
+
     def __init__(
         self,
         rollout_steps: int,
@@ -104,6 +114,7 @@ class RolloutBuffer:
         done: bool,
         value: float,
     ) -> None:
+        # 这里存的是旧策略采样时的数据，PPO update 会拿它和新策略比较。
         self.observations[self.step] = observation
         self.actions[self.step] = action
         self.log_probs[self.step] = log_prob
@@ -120,25 +131,28 @@ class RolloutBuffer:
     ) -> None:
         gae = 0.0
 
+        # GAE 从后往前算，因为 A_t 依赖 A_{t+1}。
         for index in reversed(range(self.rollout_steps)):
             if index == self.rollout_steps - 1:
                 next_value = last_value
             else:
                 next_value = self.values[index + 1]
 
-            # done belongs to the transition from s_t to s_{t+1}.
+            # done 属于 s_t -> s_{t+1} 这次转移；终止后不能继续 bootstrap。
             next_non_terminal = 1.0 - self.dones[index]
             bootstrapped_value = gamma * next_value * next_non_terminal
             td_target = self.rewards[index] + bootstrapped_value
             td_error = td_target - self.values[index]
 
-            # GAE is an exponentially weighted sum of TD errors.
+            # GAE 是 TD error 的指数加权和，用来降低 advantage 方差。
             gae = td_error + gamma * gae_lambda * next_non_terminal * gae
             self.advantages[index] = gae
 
+        # return 是 critic 的监督目标：R_t = A_t + V(s_t)。
         self.returns = self.advantages + self.values
 
     def get_batches(self, batch_size: int) -> Iterator[dict[str, torch.Tensor]]:
+        # PPO 会对同一批 rollout 数据做多轮小批量更新。
         indices = np.arange(self.rollout_steps)
         np.random.shuffle(indices)
 
@@ -196,6 +210,8 @@ def update_ppo(
     }
 
     advantages = buffer.advantages
+
+    # advantage 标准化通常能让 PPO 更新更稳定。
     normalized_advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
     buffer.advantages = normalized_advantages.astype(np.float32)
 
@@ -209,12 +225,13 @@ def update_ppo(
             log_ratio = new_log_probs - batch["old_log_probs"]
             ratio = torch.exp(log_ratio)
 
-            # PPO keeps policy updates small by clipping the probability ratio.
+            # ratio = pi_new(a|s) / pi_old(a|s)，PPO 用 clip 限制策略变化幅度。
             unclipped_policy_loss = -batch["advantages"] * ratio
             clipped_ratio = torch.clamp(ratio, 1.0 - config.clip_coef, 1.0 + config.clip_coef)
             clipped_policy_loss = -batch["advantages"] * clipped_ratio
             policy_loss = torch.max(unclipped_policy_loss, clipped_policy_loss).mean()
 
+            # value loss 训练 critic；entropy 鼓励策略保持一定探索。
             value_loss = 0.5 * (batch["returns"] - new_values).pow(2).mean()
             entropy_loss = entropy.mean()
 
@@ -224,10 +241,13 @@ def update_ppo(
 
             optimizer.zero_grad()
             loss.backward()
+
+            # 梯度裁剪防止一次 update 过猛，尤其是 Humanoid 这种高维连续控制。
             nn.utils.clip_grad_norm_(agent.parameters(), config.max_grad_norm)
             optimizer.step()
 
             with torch.no_grad():
+                # approx_kl 和 clip_fraction 用来观察策略更新是否过大。
                 approx_kl = ((ratio - 1.0) - log_ratio).mean()
                 clip_fraction = ((ratio - 1.0).abs() > config.clip_coef).float().mean()
 

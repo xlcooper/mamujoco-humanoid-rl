@@ -30,9 +30,11 @@ def main() -> None:
     args = build_parser().parse_args()
     device = choose_device(args.device)
 
+    # 评估也用同一个单智能体适配器，避免训练/评估环境不一致。
     env = make_humanoid_single_agent_env(seed=args.seed)
     observation = env.reset()
 
+    # checkpoint 只保存网络参数，网络结构仍由环境维度和 hidden_size 创建。
     observation_dim = int(np.prod(env.observation_space.shape))
     action_dim = int(np.prod(env.action_space.shape))
 
@@ -61,7 +63,7 @@ def main() -> None:
                 ).unsqueeze(0)
 
                 with torch.no_grad():
-                    # Evaluation uses the Gaussian mean as a deterministic action.
+                    # 评估阶段不用随机采样，直接用高斯均值作为确定性动作。
                     action_mean, _, _ = agent.forward(observation_tensor)
 
                 action = action_mean.squeeze(0).cpu().numpy()
