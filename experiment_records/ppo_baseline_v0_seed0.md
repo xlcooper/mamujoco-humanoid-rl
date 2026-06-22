@@ -76,7 +76,40 @@ episode=5 return=247.117 length=47
 mean_return=243.977 std_return=7.738
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 学习趋势
+
+- 与 smoke test 相比，episode return 和 episode length 明显变大。smoke test 的评估均值约为 `130.795`，本次 5 episode evaluation 均值为 `243.977`。
+- 训练末段仍有较大波动：tail 中 `episode_return` 从 `130.809` 到 `477.083` 都出现过，说明 100k steps 还不足以形成稳定策略。
+- episode length 在 tail 中多次达到 60-100 step，说明策略已经学到一些延长存活时间的行为，但还不稳定。
+
+### Value Loss
+
+- tail 中 `value_loss` 从 500 左右逐步下降到 `267.628`，没有爆炸。
+- 绝对值仍较高，说明 critic 拟合还有压力。Humanoid observation 维度高且不同特征尺度差异较大，未做 observation normalization 时 critic 学习通常会更吃力。
+
+### Entropy
+
+- entropy 稳定在 `23.78` 左右，没有快速塌缩。
+- 当前 `entropy_coef=0.0`，策略探索主要来自高斯策略自身的 learned std。短期看没有探索崩掉的问题。
+
+### KL 和 Clip Fraction
+
+- `approx_kl` 多数在 `0.02` 到 `0.026`。
+- `clip_fraction` 多数在 `0.19` 到 `0.26`，说明相当一部分样本触发了 PPO clipping。
+- 这不一定是错误，但提示当前 update 幅度偏激进。后续可观察是否需要降低 learning rate、减少 update epochs，或加入 KL early stopping。
+
+## 结论
+
+- 当前手写 PPO baseline 可以学习到比 smoke test 更好的策略，训练链路不是纯随机或无效。
+- 100k steps 只能作为 baseline v0，不足以作为最终性能结论。
+- 下一步不建议直接盲目拉长到数百万步；应先补齐更标准的连续控制训练稳定性组件，优先做 observation normalization 和更可分析的日志。
+
+## 下一步决策
+
+进入 `notes/04_ppo_diagnostics_and_obs_norm.md`：
+
+1. 增加 observation normalization。
+2. 补充更适合分析的训练日志，例如 rolling episode return / rolling episode length。
+3. 重新跑一个可对比的 baseline v1。

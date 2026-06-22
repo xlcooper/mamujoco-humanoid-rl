@@ -28,8 +28,10 @@
 | [notes/00_project_roadmap.md](notes/00_project_roadmap.md) | 长期路线、实验阶梯和简历产出规划 |
 | [notes/01_project_start_and_env_check.md](notes/01_project_start_and_env_check.md) | 已完成：AutoDL 与 MaMuJoCo 环境检查 |
 | [notes/02_minimal_ppo_baseline.md](notes/02_minimal_ppo_baseline.md) | 已完成：手写 PPO 最小训练闭环和 smoke test |
-| [notes/03_ppo_baseline_v0.md](notes/03_ppo_baseline_v0.md) | 当前任务：第一条可分析 PPO baseline |
+| [notes/03_ppo_baseline_v0.md](notes/03_ppo_baseline_v0.md) | 已完成：第一条可分析 PPO baseline |
+| [notes/04_ppo_diagnostics_and_obs_norm.md](notes/04_ppo_diagnostics_and_obs_norm.md) | 当前任务：PPO 诊断与 observation normalization |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
+| [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [scripts/summarize_ppo_run.py](scripts/summarize_ppo_run.py) | 从服务器 run 目录生成 Git 管理的轻量实验记录 |
 | [server/check_autodl_host.sh](server/check_autodl_host.sh) | AutoDL 环境检查脚本 |
 | [src/](src/) | PPO、环境适配和评估代码 |
@@ -44,11 +46,13 @@
 - AutoDL 环境基线整理。
 - 手写 PPO 最小训练闭环。
 - PPO smoke test 轻量实验记录。
+- PPO baseline v0 实验记录和分析。
+- Observation normalization 与 rolling episode 日志代码。
 
 当前教程：
 
 ```text
-notes/03_ppo_baseline_v0.md
+notes/04_ppo_diagnostics_and_obs_norm.md
 ```
 
 新对话接手时，先阅读：
@@ -58,8 +62,9 @@ README.md
 CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
-notes/03_ppo_baseline_v0.md
+notes/04_ppo_diagnostics_and_obs_norm.md
 experiment_records/ppo_smoke_test_001.md
+experiment_records/ppo_baseline_v0_seed0.md
 ```
 
 ## 目录约定
@@ -96,14 +101,15 @@ experiment_records/
 | 00 | 项目路线图 | 已建立 |
 | 01 | AutoDL 与 MaMuJoCo 环境检查 | 已完成 |
 | 02 | 手写 PPO 最小训练闭环 | 已完成 |
-| 03 | PPO Baseline v0 | 当前进行中 |
+| 03 | PPO Baseline v0 | 已完成 |
+| 04 | PPO 诊断与 observation normalization | 当前进行中，等待服务器运行 v1 |
 
 ## 当前任务入口
 
-按 `notes/03_ppo_baseline_v0.md` 在 AutoDL 上运行 baseline，并生成：
+按 `notes/04_ppo_diagnostics_and_obs_norm.md` 先完成代码改进，再在 AutoDL 上运行 baseline v1，并生成：
 
 ```text
-experiment_records/ppo_baseline_v0_seed0.md
+experiment_records/ppo_baseline_v1_obsnorm_seed0.md
 ```
 
 实验记录生成命令模板：

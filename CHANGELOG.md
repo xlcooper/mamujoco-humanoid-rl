@@ -1,5 +1,15 @@
 # 更新记录
 
+## v0.2.8 - 2026-06-23
+
+- 做了什么：实现 observation normalization，checkpoint 保存/加载归一化统计量，并为训练日志增加 rolling episode return 和 rolling episode length。
+- 为什么：baseline v0 显示策略有学习趋势但仍不稳定，下一步需要更标准的连续控制输入处理和更可分析的日志。
+
+## v0.2.7 - 2026-06-23
+
+- 做了什么：分析 `ppo_baseline_v0_seed0` 真实实验结果，补充实验记录结论；将 `notes/03_ppo_baseline_v0.md` 固化为已完成总结；新增 `notes/04_ppo_diagnostics_and_obs_norm.md` 作为当前任务。
+- 为什么：baseline v0 已有基本学习趋势，但 value loss 和波动仍明显，下一步应先做 observation normalization 和日志诊断。
+
 ## v0.2.6 - 2026-06-23
 
 - 做了什么：为 `src/` 下 PPO、环境适配、训练、评估和环境检查代码补充中文注释。

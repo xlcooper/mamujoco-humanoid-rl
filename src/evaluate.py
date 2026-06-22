@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from envs import make_humanoid_single_agent_env
+from normalization import RunningMeanStd
 from ppo import ActorCritic
 
 
@@ -26,6 +27,40 @@ def choose_device(raw_device: str) -> torch.device:
     return torch.device(raw_device)
 
 
+def load_agent_checkpoint(
+    checkpoint_path: Path,
+    agent: ActorCritic,
+    observation_dim: int,
+    device: torch.device,
+) -> RunningMeanStd | None:
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    # 兼容旧 checkpoint：旧版本直接保存 agent.state_dict()。
+    if "agent_state_dict" not in checkpoint:
+        agent.load_state_dict(checkpoint)
+        return None
+
+    agent.load_state_dict(checkpoint["agent_state_dict"])
+
+    if not checkpoint.get("normalize_observations", False):
+        return None
+
+    obs_rms = RunningMeanStd(shape=(observation_dim,))
+    obs_rms.load_state_dict(checkpoint["obs_rms"])
+    return obs_rms
+
+
+def prepare_observation(
+    observation: np.ndarray,
+    obs_rms: RunningMeanStd | None,
+) -> np.ndarray:
+    if obs_rms is None:
+        return observation.astype(np.float32)
+
+    # 评估阶段只使用训练时保存的统计量，不更新 mean/std。
+    return obs_rms.normalize(observation)
+
+
 def main() -> None:
     args = build_parser().parse_args()
     device = choose_device(args.device)
@@ -43,7 +78,12 @@ def main() -> None:
         action_dim=action_dim,
         hidden_size=args.hidden_size,
     ).to(device)
-    agent.load_state_dict(torch.load(Path(args.checkpoint), map_location=device))
+    obs_rms = load_agent_checkpoint(
+        checkpoint_path=Path(args.checkpoint),
+        agent=agent,
+        observation_dim=observation_dim,
+        device=device,
+    )
     agent.eval()
 
     returns: list[float] = []
@@ -56,8 +96,12 @@ def main() -> None:
             done = False
 
             while not done:
+                model_observation = prepare_observation(
+                    observation=observation,
+                    obs_rms=obs_rms,
+                )
                 observation_tensor = torch.as_tensor(
-                    observation,
+                    model_observation,
                     dtype=torch.float32,
                     device=device,
                 ).unsqueeze(0)

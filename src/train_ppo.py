@@ -5,12 +5,14 @@ import csv
 import json
 import random
 import time
+from collections import deque
 from pathlib import Path
 
 import numpy as np
 import torch
 
 from envs import make_humanoid_single_agent_env
+from normalization import RunningMeanStd
 from ppo import ActorCritic, PPOConfig, RolloutBuffer, update_ppo
 
 
@@ -40,6 +42,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--save-every-updates", type=int, default=10)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
+    parser.add_argument(
+        "--normalize-observations",
+        action="store_true",
+        help="Use running mean/std to normalize observations before the PPO network.",
+    )
     return parser
 
 
@@ -81,6 +88,8 @@ def write_header_if_needed(csv_path: Path) -> None:
                 "update",
                 "episode_return",
                 "episode_length",
+                "rolling_episode_return",
+                "rolling_episode_length",
                 "mean_reward",
                 "policy_loss",
                 "value_loss",
@@ -100,6 +109,8 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
                 row["update"],
                 row["episode_return"],
                 row["episode_length"],
+                row["rolling_episode_return"],
+                row["rolling_episode_length"],
                 row["mean_reward"],
                 row["policy_loss"],
                 row["value_loss"],
@@ -108,6 +119,35 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
                 row["clip_fraction"],
             ]
         )
+
+
+def prepare_observation(
+    observation: np.ndarray,
+    obs_rms: RunningMeanStd | None,
+    update_stats: bool,
+) -> np.ndarray:
+    if obs_rms is None:
+        return observation.astype(np.float32)
+
+    if update_stats:
+        obs_rms.update(observation[None, :])
+
+    return obs_rms.normalize(observation)
+
+
+def save_checkpoint(
+    path: Path,
+    agent: ActorCritic,
+    normalize_observations: bool,
+    obs_rms: RunningMeanStd | None,
+) -> None:
+    # checkpoint 同时保存网络参数和 observation normalization 状态。
+    checkpoint = {
+        "agent_state_dict": agent.state_dict(),
+        "normalize_observations": normalize_observations,
+        "obs_rms": obs_rms.state_dict() if obs_rms is not None else None,
+    }
+    torch.save(checkpoint, path)
 
 
 def main() -> None:
@@ -128,6 +168,9 @@ def main() -> None:
     # 从环境空间自动读取维度，避免把 348/17 写死在训练代码里。
     observation_dim = int(np.prod(env.observation_space.shape))
     action_dim = int(np.prod(env.action_space.shape))
+    obs_rms = None
+    if args.normalize_observations:
+        obs_rms = RunningMeanStd(shape=(observation_dim,))
 
     config = PPOConfig(
         observation_dim=observation_dim,
@@ -164,6 +207,8 @@ def main() -> None:
     episode_length = 0
     last_episode_return = 0.0
     last_episode_length = 0
+    recent_episode_returns: deque[float] = deque(maxlen=20)
+    recent_episode_lengths: deque[int] = deque(maxlen=20)
 
     total_updates = args.total_timesteps // args.rollout_steps
     if total_updates < 1:
@@ -184,8 +229,13 @@ def main() -> None:
 
             # Rollout 阶段：用当前策略和环境交互，收集 PPO 训练所需数据。
             for _ in range(args.rollout_steps):
+                model_observation = prepare_observation(
+                    observation=observation,
+                    obs_rms=obs_rms,
+                    update_stats=True,
+                )
                 observation_tensor = torch.as_tensor(
-                    observation,
+                    model_observation,
                     dtype=torch.float32,
                     device=device,
                 ).unsqueeze(0)
@@ -203,7 +253,7 @@ def main() -> None:
                 step_result = env.step(action)
 
                 buffer.add(
-                    observation=observation,
+                    observation=model_observation,
                     action=action,
                     log_prob=log_prob,
                     reward=step_result.reward,
@@ -221,6 +271,8 @@ def main() -> None:
                     # episode 结束后记录最近一局回报，并重置环境进入下一局。
                     last_episode_return = episode_return
                     last_episode_length = episode_length
+                    recent_episode_returns.append(episode_return)
+                    recent_episode_lengths.append(episode_length)
                     observation = env.reset()
                     episode_return = 0.0
                     episode_length = 0
@@ -232,8 +284,13 @@ def main() -> None:
                 last_value = 0.0
             else:
                 # rollout 截断但 episode 未结束，用 critic 估计最后状态价值。
+                model_observation = prepare_observation(
+                    observation=observation,
+                    obs_rms=obs_rms,
+                    update_stats=False,
+                )
                 observation_tensor = torch.as_tensor(
-                    observation,
+                    model_observation,
                     dtype=torch.float32,
                     device=device,
                 ).unsqueeze(0)
@@ -259,11 +316,19 @@ def main() -> None:
 
             # 训练日志：终端打印最近状态，CSV 保存完整 update 级指标。
             mean_reward = float(np.mean(rollout_rewards))
+            rolling_episode_return = 0.0
+            rolling_episode_length = 0.0
+            if recent_episode_returns:
+                rolling_episode_return = float(np.mean(recent_episode_returns))
+                rolling_episode_length = float(np.mean(recent_episode_lengths))
+
             row = {
                 "global_step": global_step,
                 "update": update,
                 "episode_return": last_episode_return,
                 "episode_length": last_episode_length,
+                "rolling_episode_return": rolling_episode_return,
+                "rolling_episode_length": rolling_episode_length,
                 "mean_reward": mean_reward,
                 **update_metrics,
             }
@@ -273,6 +338,8 @@ def main() -> None:
                 "update={update} global_step={global_step} "
                 "last_ep_return={episode_return:.3f} "
                 "last_ep_len={episode_length} "
+                "roll_return={rolling_episode_return:.3f} "
+                "roll_len={rolling_episode_length:.1f} "
                 "mean_reward={mean_reward:.3f} "
                 "policy_loss={policy_loss:.4f} "
                 "value_loss={value_loss:.4f} "
@@ -284,10 +351,20 @@ def main() -> None:
             if should_save:
                 # 中间 checkpoint 方便长训练中断后查看，但不提交到 Git。
                 checkpoint_path = checkpoint_dir / f"agent_update_{update}.pt"
-                torch.save(agent.state_dict(), checkpoint_path)
+                save_checkpoint(
+                    path=checkpoint_path,
+                    agent=agent,
+                    normalize_observations=args.normalize_observations,
+                    obs_rms=obs_rms,
+                )
 
         final_checkpoint = checkpoint_dir / "agent_final.pt"
-        torch.save(agent.state_dict(), final_checkpoint)
+        save_checkpoint(
+            path=final_checkpoint,
+            agent=agent,
+            normalize_observations=args.normalize_observations,
+            obs_rms=obs_rms,
+        )
         print(f"training_done=true run_dir={run_dir}")
     finally:
         env.close()
