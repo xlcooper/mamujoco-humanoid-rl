@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.2 - 2026-06-23
+
+- 做了什么：将独立 conda 环境路径从 `humanoid-ppo` 改为 `humanoid-rl`。
+- 为什么：项目整体目标不止普通 PPO，环境名应覆盖后续优化、多智能体对比和 RL 扩展阶段。
+
 ## v0.1.1 - 2026-06-23
 
 - 做了什么：重写 `notes/01_project_start_and_env_check.md`，使其反映当前状态：远端仓库已连接、服务器应使用数据盘、Humanoid 项目应创建独立 conda 环境、旧 Fetch 环境只用于参考。

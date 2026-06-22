@@ -86,8 +86,8 @@ conda deactivate
 
 ```bash
 mkdir -p /root/autodl-tmp/conda-envs
-conda create -p /root/autodl-tmp/conda-envs/humanoid-ppo python=3.11 -y
-conda activate /root/autodl-tmp/conda-envs/humanoid-ppo
+conda create -p /root/autodl-tmp/conda-envs/humanoid-rl python=3.11 -y
+conda activate /root/autodl-tmp/conda-envs/humanoid-rl
 ```
 
 确认你在项目目录：
