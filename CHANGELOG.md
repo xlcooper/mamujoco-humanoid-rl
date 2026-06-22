@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.7 - 2026-06-23
+
+- 做了什么：根据服务器提交的 `server/autodl_host_report.txt` 新增 `AUTODL_HOST_BASELINE.md`，并更新 README 与 `notes/02_minimal_ppo_baseline.md` 的当前状态。
+- 为什么：稳定硬件、CUDA、Conda 和关键包版本已经确认，可以作为后续 PPO 实验复现基线。
+
 ## v0.1.6 - 2026-06-23
 
 - 做了什么：将 `notes/01_project_start_and_env_check.md` 更新为已完成结果记录，并新增 `notes/02_minimal_ppo_baseline.md` 作为下一节普通 PPO 最小训练闭环。

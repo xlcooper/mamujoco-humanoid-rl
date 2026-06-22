@@ -17,7 +17,7 @@ Stage 1: ordinary PPO baseline preparation.
 
 - MaMuJoCo Humanoid smoke tests passed for `partitioning=None` and `partitioning="9|8"`.
 - Current lesson: `notes/02_minimal_ppo_baseline.md`.
-- AutoDL host baseline has not been recorded locally yet because `server/autodl_host_report.txt` still needs to be committed and pushed from the server.
+- AutoDL host baseline has been recorded in `AUTODL_HOST_BASELINE.md`.
 
 ## New AI Handoff
 
@@ -35,6 +35,7 @@ Before editing, read these files first:
 - `notes/00_project_roadmap.md`: project route, experiment ladder, resume deliverables.
 - `notes/01_project_start_and_env_check.md`: completed AutoDL and MaMuJoCo smoke test result.
 - `notes/02_minimal_ppo_baseline.md`: current lesson, ordinary PPO minimal training loop.
+- `AUTODL_HOST_BASELINE.md`: stable AutoDL hardware, CUDA, conda, and package baseline.
 - `server/check_autodl_host.sh`: script for collecting stable AutoDL environment facts.
 - `src/check_mamujoco_env.py`: quick MaMuJoCo Humanoid API smoke test.
 - `requirements.txt`: starter dependencies, to be refined after AutoDL reports real versions.

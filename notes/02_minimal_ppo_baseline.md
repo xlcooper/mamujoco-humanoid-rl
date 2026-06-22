@@ -64,7 +64,6 @@
 
 ## 进入代码前还缺什么
 
-最好先把上一节生成的 `server/autodl_host_report.txt` commit/push。这样我可以整理 `AUTODL_HOST_BASELINE.md`，后续实验记录会更完整。
+上一节生成的 `server/autodl_host_report.txt` 已经进入 Git，稳定环境事实已整理到 `AUTODL_HOST_BASELINE.md`。
 
-如果你想先写 PPO，也可以直接继续；环境 smoke test 已经足够支持下一步编码。
-
+现在可以开始写 PPO baseline 代码。
