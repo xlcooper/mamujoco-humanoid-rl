@@ -63,39 +63,63 @@
 - checkpoints
 - evaluation summaries
 
-## 进入代码前还缺什么
+## 已完成
 
-上一节生成的 `server/autodl_host_report.txt` 已经进入 Git，稳定环境事实已整理到 `AUTODL_HOST_BASELINE.md`。
+- 上一节生成的 `server/autodl_host_report.txt` 已经进入 Git，稳定环境事实已整理到 `AUTODL_HOST_BASELINE.md`。
+- 手写 PPO baseline 代码已完成第一版。
+- Smoke test 已通过，结果已整理到 `experiment_records/ppo_smoke_test_001.md`。
 
-短训练已通过。运行命令：
+## 当前任务：PPO baseline v0
+
+现在要跑一个中等长度 baseline，用来获得第一条可分析训练曲线。它仍然不是最终成绩，只用于判断当前 PPO 实现是否有学习趋势、是否有明显稳定性问题。
+
+在 AutoDL 上运行：
 
 ```bash
 cd /root/autodl-tmp/Humanoid
 git pull --rebase
 conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-python src/train_ppo.py --total-timesteps 4096 --rollout-steps 1024 --batch-size 256 --update-epochs 2 --run-name smoke_ppo
+
+python src/train_ppo.py \
+  --total-timesteps 100000 \
+  --rollout-steps 2048 \
+  --batch-size 256 \
+  --update-epochs 10 \
+  --run-name ppo_baseline_v0_seed0
 ```
 
-如果短训练通过，再运行评估：
+训练结束后评估：
 
 ```bash
-python src/evaluate.py --checkpoint /root/autodl-tmp/Humanoid-runs/smoke_ppo/checkpoints/agent_final.pt --episodes 2
+python src/evaluate.py \
+  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/checkpoints/agent_final.pt \
+  --episodes 5
 ```
 
-把训练输出和是否生成 `metrics.csv` 贴回来。短训练结果只用于检查代码链路，不作为性能结论。
+检查轻量输出：
 
-结果已经整理到 `experiment_records/ppo_smoke_test_001.md`。
+```bash
+tail -n 20 /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/metrics.csv
+cat /root/autodl-tmp/Humanoid-runs/ppo_baseline_v0_seed0/config.json
+```
 
-## 当前结论
+## 你需要回传
 
-- 手写 PPO baseline 的训练入口可以运行到 `training_done=true`。
-- `agent_final.pt` 可以被 `src/evaluate.py` 加载并完成 2 episode 评估。
-- 这次只是 smoke test，不作为算法性能结论。
+把下面内容贴回来，之后整理到 `experiment_records/ppo_baseline_v0_seed0.md`：
 
-## 下一步
+1. 训练最后 20 行 `metrics.csv`。
+2. `config.json`。
+3. evaluate 输出。
+4. 如果报错，贴 traceback 最后 80 行。
 
-下一节建议做一次更完整的短基线：
+## 分析重点
 
-1. 确认 `metrics.csv` 和 `config.json` 的内容。
-2. 跑一个更长但仍可控的 baseline，例如 `100_000` 到 `300_000` timesteps。
-3. 根据训练曲线决定是否先加 observation normalization / reward scaling。
+看这几个现象：
+
+- episodic return 是否有上升趋势。
+- episode length 是否变长。
+- value loss 是否异常爆炸。
+- entropy 是否过快下降。
+- approx KL 和 clip fraction 是否显示更新过猛。
+
+如果 baseline 明显不稳定，下一步优先考虑 observation normalization / reward scaling。若曲线能正常上升，再进入更长训练和多 seed。

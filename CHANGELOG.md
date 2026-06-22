@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.2 - 2026-06-23
+
+- 做了什么：更新 `notes/02_minimal_ppo_baseline.md`，把当前推进任务明确为 `ppo_baseline_v0_seed0` 中等长度训练，并写入运行、评估和回传输出命令。
+- 为什么：项目推进应以 notes 为准，对话只做管理和疑难交流。
+
 ## v0.2.1 - 2026-06-23
 
 - 做了什么：新增 `experiment_records/ppo_smoke_test_001.md`，记录 PPO smoke test 的训练命令、评估命令、关键指标摘要和观察；同时清理 `notes/02_minimal_ppo_baseline.md` 中的大段终端输出。
