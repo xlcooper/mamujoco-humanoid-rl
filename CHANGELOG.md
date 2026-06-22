@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.5 - 2026-06-23
+
+- 做了什么：精简 `notes/01_project_start_and_env_check.md`，把当前执行命令放到最前面，并将 EGL、viewer、旧 warning 等内容降级为说明。
+- 为什么：lesson note 应该是当前任务清单，而不是冗长聊天记录；日常推进以 `notes/` 为准，对话只用于反馈和纠错。
+
 ## v0.1.4 - 2026-06-23
 
 - 做了什么：更新 `notes/01_project_start_and_env_check.md`，记录当前服务器包版本、环境报告文件未生成的原因、拉取 smoke test 修复提交的检查步骤，以及 Adroit warning / OpenGL display 报错的处理判断。
