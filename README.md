@@ -67,6 +67,13 @@ Do not infer AutoDL hardware or package versions from the local machine.
 6. Do not commit models, checkpoints, TensorBoard events, raw monitor logs, videos, secrets, private keys, or server access details.
 7. Preserve user-written notes and comments unless they are wrong or misleading.
 
+## Code Style
+
+- Keep PPO code beginner friendly: explicit variables, clear control flow, and short comments at algorithm-heavy points.
+- Prefer readable multi-line steps over dense one-liners.
+- Comment the purpose of key RL concepts where they appear in code: policy forward pass, rollout collection, GAE, PPO clipping, and training loop stages.
+- Keep first baseline simple before adding optimization tricks.
+
 ## Current Runnable Entry Points
 
 After installing dependencies on AutoDL:
@@ -74,6 +81,12 @@ After installing dependencies on AutoDL:
 ```bash
 python src/check_mamujoco_env.py --partitioning none --steps 5
 python src/check_mamujoco_env.py --partitioning "9|8" --steps 5
+```
+
+Short PPO smoke training on AutoDL:
+
+```bash
+python src/train_ppo.py --total-timesteps 4096 --rollout-steps 1024 --batch-size 256 --update-epochs 2 --run-name smoke_ppo
 ```
 
 ## Key References

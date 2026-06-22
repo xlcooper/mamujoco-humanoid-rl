@@ -20,8 +20,8 @@
 
 ## 本节计划
 
-1. 写一个单智能体环境适配器：从 PettingZoo dict API 转成 PPO 更方便使用的 `(obs, reward, done, info)` 风格。
-2. 写 PPO 需要的核心模块：
+1. 已写一个单智能体环境适配器：从 PettingZoo dict API 转成 PPO 更方便使用的 `(obs, reward, done, info)` 风格。
+2. 已写 PPO 需要的核心模块：
    - actor-critic network
    - Gaussian continuous policy
    - rollout buffer
@@ -29,14 +29,14 @@
    - clipped policy loss
    - value loss
    - entropy bonus
-3. 写最小训练入口，先支持短跑：
+3. 已写最小训练入口，先支持短跑：
    - seed
    - total timesteps
    - rollout length
    - minibatch size
    - update epochs
-   - TensorBoard 或 CSV 日志
-4. 在 AutoDL 上做一次短训练，确认不会崩。
+   - CSV 日志
+4. 当前要在 AutoDL 上做一次短训练，确认不会崩。
 
 ## 第一版不做
 
@@ -48,7 +48,7 @@
 
 ## 预期产出
 
-代码文件候选：
+已新增代码文件：
 
 - `src/envs.py`
 - `src/ppo.py`
@@ -58,7 +58,8 @@
 运行产物放 AutoDL 数据盘，不提交到 Git：
 
 - `/root/autodl-tmp/Humanoid-runs/`
-- TensorBoard events
+- `config.json`
+- `metrics.csv`
 - checkpoints
 - evaluation summaries
 
@@ -66,4 +67,19 @@
 
 上一节生成的 `server/autodl_host_report.txt` 已经进入 Git，稳定环境事实已整理到 `AUTODL_HOST_BASELINE.md`。
 
-现在可以开始写 PPO baseline 代码。
+现在可以在服务器上运行短训练：
+
+```bash
+cd /root/autodl-tmp/Humanoid
+git pull --rebase
+conda activate /root/autodl-tmp/conda-envs/humanoid-rl
+python src/train_ppo.py --total-timesteps 4096 --rollout-steps 1024 --batch-size 256 --update-epochs 2 --run-name smoke_ppo
+```
+
+如果短训练通过，再运行评估：
+
+```bash
+python src/evaluate.py --checkpoint /root/autodl-tmp/Humanoid-runs/smoke_ppo/checkpoints/agent_final.pt --episodes 2
+```
+
+把训练输出和是否生成 `metrics.csv` 贴回来。短训练结果只用于检查代码链路，不作为性能结论。

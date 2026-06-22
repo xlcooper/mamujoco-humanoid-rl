@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.2.0 - 2026-06-23
+
+- 做了什么：新增手写 PPO baseline 初版，包括单智能体环境适配器、Actor-Critic、Gaussian policy、rollout buffer、GAE、PPO clipped update、训练入口和评估入口；同时补充 README 代码风格约定和短训练命令。
+- 为什么：进入 Stage 1 的普通 PPO baseline，实现一个教学友好、可逐步调试和扩展的最小训练闭环。
+
 ## v0.1.7 - 2026-06-23
 
 - 做了什么：根据服务器提交的 `server/autodl_host_report.txt` 新增 `AUTODL_HOST_BASELINE.md`，并更新 README 与 `notes/02_minimal_ppo_baseline.md` 的当前状态。
