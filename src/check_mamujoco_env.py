@@ -33,7 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
         description="Smoke-test Farama MaMuJoCo Humanoid through the PettingZoo Parallel API."
     )
     parser.add_argument("--domain", default="Humanoid", help="MaMuJoCo domain name.")
-    parser.add_argument("--task", default=None, help="Optional MaMuJoCo task name.")
+    parser.add_argument(
+        "--task",
+        default=None,
+        help="Deprecated placeholder. MaMuJoCo parallel_env uses domain and partitioning only.",
+    )
     parser.add_argument(
         "--partitioning",
         default="none",
@@ -53,6 +57,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     partitioning = parse_partitioning(args.partitioning)
+    if args.task is not None:
+        raise SystemExit(
+            "MaMuJoCo parallel_env does not use a separate task argument. "
+            "Run without --task, for example: "
+            "python src/check_mamujoco_env.py --partitioning none --steps 5"
+        )
 
     try:
         from gymnasium_robotics import mamujoco_v1
@@ -63,12 +73,7 @@ def main() -> None:
             f"Original error: {exc}"
         ) from exc
 
-    env = mamujoco_v1.parallel_env(
-        domain=args.domain,
-        task=args.task,
-        partitioning=partitioning,
-        render_mode=args.render_mode,
-    )
+    env = mamujoco_v1.parallel_env(args.domain, partitioning, render_mode=args.render_mode)
 
     try:
         observations, infos = env.reset(seed=args.seed)
@@ -109,4 +114,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

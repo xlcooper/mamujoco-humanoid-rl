@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.1.3 - 2026-06-23
+
+- 做了什么：修正 `src/check_mamujoco_env.py` 的 MaMuJoCo 环境创建方式，改为官方支持的位置参数调用。
+- 为什么：`mamujoco_v1.parallel_env` 使用 `parallel_env("Humanoid", partitioning)`，不接受 `domain=` / `task=` / `partitioning=` 这组关键字参数。
+
 ## v0.1.2 - 2026-06-23
 
 - 做了什么：将独立 conda 环境路径从 `humanoid-ppo` 改为 `humanoid-rl`。
