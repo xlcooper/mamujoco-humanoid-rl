@@ -58,31 +58,79 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
 ### Stage 2：工程优化与消融
 
-候选方向：
+目标：
 
-- observation normalization：对 observation 做均值/方差归一化，缓解输入尺度差异，让 actor 和 critic 更容易学习。
-- reward/return scaling：对 reward 或 return 做缩放，避免 critic 目标过大或过小，提升 value function 拟合稳定性。
-- advantage normalization：对 advantage 做标准化，让 PPO policy update 的梯度尺度更稳定；当前代码已在 PPO update 中使用。
-- KL early stopping：监控新旧策略的 approximate KL，超过阈值时提前停止当前 update，防止策略一步改太猛。
-- entropy coefficient schedule：动态调整 entropy bonus 系数，控制探索强度从高到低变化，避免早期探索不足或后期过度随机。
-- value clipping：像 PPO clip policy 一样限制 value function 更新幅度，减少 critic 在高噪声回报下剧烈震荡。
-- orthogonal initialization：用正交初始化网络权重，常见于 PPO 工程实现，可能改善早期训练稳定性。
-- vectorized rollout collection：并行采多个环境，提高采样吞吐和 batch 多样性，减少单环境轨迹相关性。
-- seed stability comparison：多随机种子验证，判断改进是否稳定，而不是只在单个 seed 上偶然变好。
+- 在普通 PPO baseline 上做工程优化、诊断和消融。
+- 每个方向都要有明确假设、对照组、指标和结论。
+- 不要求把所有候选方向都做完；只推进能解释当前问题、能形成清晰结论的方向。
 
-每个方向都要有明确假设、对照组、指标和结论。
+已推进方向与当前状态：
 
-当前状态：
+1. observation normalization
 
-- 正在进行后半段验证。
-- 已验证 observation normalization 明显有效，应保留。
-- 已验证 KL early stopping 机制有效，但 `target_kl=0.03/0.06` 暂未成为当前主线。
-- 已通过长训发现无界 Gaussian policy 会产生严重动作越界。
-- 已验证 action log std clamp 不是好主线：`0.5` 和 `1.0` 都导致策略退化。
-- 已通过 action clipping diagnostics 发现 tail 中约 `98.26%` raw action 维度被环境裁剪。
-- 已引入 tanh-squashed Gaussian policy，并将动作裁剪比例降到 `0`。
-- 已通过 `update_epochs=4` 将 squashed policy 的 seed 0 evaluation mean return 提升到 `716.011`。
-- 当前正在做 seed `1/2` 多 seed 验证，用于判断 Stage 2 是否可以收束，并准备进入 Stage 3。
+   中文解释：对 observation 做均值/方差归一化，缓解输入尺度差异，让 actor 和 critic 更容易学习。
+
+   当前状态：已完成。v1 相比 v0 提升 evaluation return，并明显降低 value loss；该方向有效，应保留。
+
+2. advantage normalization
+
+   中文解释：对 advantage 做标准化，让 PPO policy update 的梯度尺度更稳定。
+
+   当前状态：已作为 PPO update 的基础实现保留在代码中，没有单独做消融。
+
+3. KL early stopping
+
+   中文解释：监控新旧策略的 approximate KL，超过阈值时提前停止当前 update，防止策略一步改太猛。
+
+   当前状态：已完成。`target_kl=0.03` 太保守，`target_kl=0.06` 有改善但没有成为当前主线；该机制有效，但暂不作为最终候选 baseline 的核心配置。
+
+4. seed stability comparison
+
+   中文解释：用多个随机种子验证结果是否稳定，避免只在单个 seed 上偶然变好。
+
+   当前状态：正在进行。当前候选 baseline 已完成 seed `0`，正在等待 seed `1/2` 结果，用于判断 Stage 2 是否可以收束。
+
+额外推进方向与当前状态：
+
+1. long training
+
+   中文解释：把短训 baseline 扩展到 `3M` timesteps，观察普通 PPO 是否能继续提升，以及长训会暴露什么问题。
+
+   当前状态：已完成。长训提升 return，但暴露 entropy、approx KL、PPO clip fraction 偏高的问题。
+
+2. action log std clamp
+
+   中文解释：限制高斯策略的 `log_std` 范围，尝试控制动作探索噪声。
+
+   当前状态：已完成并判定不作为主线。`max=0.5` 和 `max=1.0` 都导致策略退化，说明硬性 std clamp 不是当前好方案。
+
+3. action clipping diagnostics
+
+   中文解释：统计 raw Gaussian action 有多少维度超出环境动作范围，以及平均越界幅度。
+
+   当前状态：已完成。诊断发现 tail 中约 `98.26%` raw action 维度被环境裁剪，说明无界 Gaussian policy 与环境动作边界严重不匹配。
+
+4. tanh-squashed Gaussian policy
+
+   中文解释：先采样 raw Gaussian action，再用 tanh 映射到环境动作范围，并用 Jacobian 修正 log_prob，让策略天然输出合法动作。
+
+   当前状态：已完成。动作裁剪比例降为 `0`，但初始 `update_epochs=10` 时 KL 和 PPO clip fraction 过高。
+
+5. update epochs tuning
+
+   中文解释：减少同一批 rollout 被重复训练的轮数，降低 PPO update 强度。
+
+   当前状态：已完成 seed `0`。`observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 将 seed 0 evaluation mean return 提升到 `716.011`，是当前最强候选 baseline。
+
+暂未展开方向：
+
+- reward/return scaling
+- entropy coefficient schedule
+- value clipping
+- orthogonal initialization
+- vectorized rollout collection
+
+这些方向不是废弃，只是当前问题已经由动作边界诊断、tanh-squashed policy 和 update epochs tuning 得到更直接的推进。是否继续做，要等 seed `1/2` 验证结果后再决定。
 
 ### Stage 3：MaMuJoCo 多智能体对比
 
