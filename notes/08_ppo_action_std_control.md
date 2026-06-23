@@ -16,17 +16,19 @@
 
 ## 已完成代码
 
-- `PPOConfig.action_log_std_min`
-- `PPOConfig.action_log_std_max`
-- `ActorCritic.clamp_action_log_std(...)`
-- `ActorCritic.action_log_std_metrics()`
-- `train_ppo.py` 命令行参数：
-  - `--action-log-std-min`
-  - `--action-log-std-max`
-- `metrics.csv` 新增列：
-  - `action_log_std_mean`
-  - `action_log_std_min`
-  - `action_log_std_max`
+1. `src/ppo.py`
+   - `PPOConfig` 增加 `action_log_std_min`
+   - `PPOConfig` 增加 `action_log_std_max`
+   - `ActorCritic` 增加 `clamp_action_log_std(...)`
+   - `ActorCritic` 增加 `action_log_std_metrics()`
+   - PPO update 中 `optimizer.step()` 后执行可选 log std clamp
+2. `src/train_ppo.py`
+   - 新增命令行参数 `--action-log-std-min`
+   - 新增命令行参数 `--action-log-std-max`
+   - 训练日志新增 `action_log_std_mean`
+   - 训练日志新增 `action_log_std_min`
+   - 训练日志新增 `action_log_std_max`
+   - 终端输出新增 `log_std_mean`
 
 默认不传 clamp 参数时，旧实验行为保持不变。
 

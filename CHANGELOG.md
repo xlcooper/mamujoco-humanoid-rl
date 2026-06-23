@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.6 - 2026-06-23
+
+- 做了什么：统一 `notes/` 中“已完成代码 / 本节代码变化”的写法，按文件列清具体代码改动；README 新增对应维护规则。
+- 为什么：阶段总结需要能直接看出改了哪些源码文件、参数、函数和日志列，避免只写概念名导致后续复盘不清楚。
+
 ## v0.3.5 - 2026-06-23
 
 - 做了什么：分析 `ppo_long_obsnorm_logstd10_seed0` 真实结果，将 `notes/09_ppo_relaxed_action_std_control.md` 固化为已完成总结，并新增 `notes/10_ppo_action_clipping_diagnostics.md`；训练日志新增 action clipping diagnostics。

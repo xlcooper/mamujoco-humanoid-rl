@@ -26,10 +26,23 @@
 
 ## 已完成代码
 
-- `src/envs.py`：PettingZoo Parallel API 到单智能体 PPO loop 的适配器。
-- `src/ppo.py`：Actor-Critic、Gaussian policy、RolloutBuffer、GAE、PPO clipped update。
-- `src/train_ppo.py`：训练入口，支持 CSV 日志、config 保存和 checkpoint 保存。
-- `src/evaluate.py`：评估入口，加载 checkpoint 并输出 episode return。
+1. `src/envs.py`
+   - 新增 `SingleAgentMaMuJoCoEnv`
+   - 将 PettingZoo Parallel API 的 dict observation/action/reward 转成单智能体 PPO loop
+   - 在 `step()` 中裁剪动作到环境合法范围，并把 terminated/truncated 合并成 `done`
+2. `src/ppo.py`
+   - 新增 `ActorCritic`，包含共享 backbone、Gaussian actor 和 critic
+   - 新增 `RolloutBuffer`，保存 observation、action、reward、value、log_prob
+   - 实现 GAE return/advantage 计算
+   - 实现 PPO clipped update、value loss、entropy 和梯度裁剪
+3. `src/train_ppo.py`
+   - 新增 PPO 训练入口
+   - 支持 rollout 采样、GAE 计算、PPO update 和终端日志
+   - 保存 `config.json`、`metrics.csv` 和 `checkpoints/agent_final.pt`
+4. `src/evaluate.py`
+   - 新增 PPO 评估入口
+   - 加载 `agent_final.pt`
+   - 使用 actor mean action 做确定性评估，并输出 episode return 和 length
 
 代码风格要求见 `README.md`。
 

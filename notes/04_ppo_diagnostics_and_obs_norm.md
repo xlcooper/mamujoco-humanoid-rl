@@ -13,10 +13,11 @@
    - 在线跟踪 observation 均值和方差
    - 对 observation 做标准化和 clip
 2. `src/train_ppo.py`
-   - 新增 `--normalize-observations`
+   - 新增命令行参数 `--normalize-observations`
    - 训练时更新 observation 统计量
-   - checkpoint 保存网络参数和 observation 统计量
-   - 日志新增 `rolling_episode_return` 和 `rolling_episode_length`
+   - checkpoint 新增保存 observation normalization 统计量
+   - 训练日志新增 `rolling_episode_return`
+   - 训练日志新增 `rolling_episode_length`
 3. `src/evaluate.py`
    - 加载新 checkpoint 格式
    - 评估时使用训练阶段保存的 observation 统计量

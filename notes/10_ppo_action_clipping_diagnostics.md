@@ -12,12 +12,13 @@
 
 ## 本节代码变化
 
-已在 `src/train_ppo.py` 增加 rollout 级动作裁剪诊断：
-
-- `action_clip_fraction`
-  - 每个 rollout 中，raw action 维度超出环境动作边界的平均比例。
-- `action_clip_excess_mean`
-  - 超出边界的平均幅度；未超出边界的维度记为 `0`。
+1. `src/train_ppo.py`
+   - rollout 采样时读取环境动作上下界 `env.action_space.low/high`
+   - 统计 raw action 超出环境动作边界的维度比例
+   - 统计 raw action 超出边界的平均幅度
+   - 训练日志新增 `action_clip_fraction`
+   - 训练日志新增 `action_clip_excess_mean`
+   - 终端输出新增 `act_clip`
 
 这两个指标只用于诊断，不改变训练行为。
 
