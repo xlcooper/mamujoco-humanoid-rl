@@ -51,6 +51,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--save-every-updates", type=int, default=10)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     parser.add_argument(
+        "--tensorboard",
+        action="store_true",
+        help="Write TensorBoard event files under the run directory.",
+    )
+    parser.add_argument(
+        "--tensorboard-log-dir",
+        default=None,
+        help="Optional TensorBoard log dir. Defaults to <run_dir>/tensorboard.",
+    )
+    parser.add_argument(
         "--normalize-observations",
         action="store_true",
         help="Use running mean/std to normalize observations before the PPO network.",
@@ -143,6 +153,31 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
         )
 
 
+def write_tensorboard_metrics(writer: object, row: dict[str, float | int]) -> None:
+    # TensorBoard 用 global_step 作为横轴；CSV 仍然保留完整原始记录。
+    step = int(row["global_step"])
+    writer.add_scalar("charts/episode_return", row["episode_return"], step)
+    writer.add_scalar("charts/episode_length", row["episode_length"], step)
+    writer.add_scalar("charts/rolling_episode_return", row["rolling_episode_return"], step)
+    writer.add_scalar("charts/rolling_episode_length", row["rolling_episode_length"], step)
+    writer.add_scalar("charts/mean_reward", row["mean_reward"], step)
+
+    writer.add_scalar("losses/policy_loss", row["policy_loss"], step)
+    writer.add_scalar("losses/value_loss", row["value_loss"], step)
+    writer.add_scalar("losses/entropy", row["entropy"], step)
+
+    writer.add_scalar("diagnostics/approx_kl", row["approx_kl"], step)
+    writer.add_scalar("diagnostics/clip_fraction", row["clip_fraction"], step)
+    writer.add_scalar("diagnostics/action_clip_fraction", row["action_clip_fraction"], step)
+    writer.add_scalar("diagnostics/action_clip_excess_mean", row["action_clip_excess_mean"], step)
+    writer.add_scalar("diagnostics/update_epochs_used", row["update_epochs_used"], step)
+    writer.add_scalar("diagnostics/early_stopped", row["early_stopped"], step)
+
+    writer.add_scalar("policy/action_log_std_mean", row["action_log_std_mean"], step)
+    writer.add_scalar("policy/action_log_std_min", row["action_log_std_min"], step)
+    writer.add_scalar("policy/action_log_std_max", row["action_log_std_max"], step)
+
+
 def prepare_observation(
     observation: np.ndarray,
     obs_rms: RunningMeanStd | None,
@@ -188,6 +223,13 @@ def main() -> None:
     checkpoint_dir = run_dir / "checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     write_header_if_needed(metrics_path)
+    writer = None
+    if args.tensorboard:
+        from torch.utils.tensorboard import SummaryWriter
+
+        tensorboard_dir = Path(args.tensorboard_log_dir) if args.tensorboard_log_dir else run_dir / "tensorboard"
+        tensorboard_dir.mkdir(parents=True, exist_ok=True)
+        writer = SummaryWriter(log_dir=str(tensorboard_dir))
 
     env = make_humanoid_single_agent_env(seed=args.seed)
     observation = env.reset()
@@ -386,6 +428,8 @@ def main() -> None:
                 **agent.action_log_std_metrics(),
             }
             append_metrics(metrics_path, row)
+            if writer is not None:
+                write_tensorboard_metrics(writer, row)
 
             print(
                 "update={update} global_step={global_step} "
@@ -428,6 +472,8 @@ def main() -> None:
         )
         print(f"training_done=true run_dir={run_dir}")
     finally:
+        if writer is not None:
+            writer.close()
         env.close()
 
 

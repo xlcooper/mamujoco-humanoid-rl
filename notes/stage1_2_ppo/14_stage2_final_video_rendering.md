@@ -1,8 +1,8 @@
-# 15 当前任务：Stage 2 Final Baseline Video Rendering
+# 14 已完成/可复用：Stage 2 Final Baseline Video Rendering
 
 ## 本节目标
 
-先暂停多智能体推进，给 Stage 2 最终单智能体 baseline 补一个展示视频。
+给 Stage 2 最终单智能体 baseline 补一个展示视频。
 
 视频用于回答两个问题：
 
@@ -65,34 +65,15 @@ episode=1 return=xxx.xxx length=xxx video=/root/autodl-tmp/Humanoid-runs/ppo_lon
 
 视频文件不要提交到 Git。
 
-## 回传轻量记录
+## 是否提交 Git
 
-看完视频后，新建轻量记录：
+视频不是训练结果，也不是数值评估结果。视频文件不提交 Git，视频路径和主观观察也不强制写轻量实验记录。
 
-```bash
-nano experiment_records/ppo_final_baseline_video_seed1.md
-```
-
-建议记录：
-
-- checkpoint path
-- video path
-- episode return
-- episode length
-- 观察结论：是否能稳定站立/移动，是否有明显异常动作
-
-提交：
-
-```bash
-git add experiment_records/ppo_final_baseline_video_seed1.md
-git commit -m "Record PPO final baseline video summary"
-git pull --rebase
-git push
-```
+如果后续做项目展示，只需要保留 mp4 文件或从服务器下载到本地展示目录。
 
 ## 本节完成标准
 
 - 至少生成 seed 1 的 1 个 mp4 视频。
-- Git 中只记录轻量视频摘要，不提交 mp4。
-- 本地分析后决定是否还需要 seed 0/2 各录 1 个视频。
-- 完成后进入 `notes/14_stage3_sac_entry.md`，开始 SAC baseline 与 PPO/SAC 对比。
+- 确认 `MUJOCO_GL=egl` 可以在当前 `humanoid-rl` 环境中完成 headless rendering。
+- 本地观看视频，校准对 PPO final baseline 的行为描述。
+- 完成后进入 `notes/stage1_2_ppo/15_stage2_final_tensorboard.md`，补齐 TensorBoard 曲线。

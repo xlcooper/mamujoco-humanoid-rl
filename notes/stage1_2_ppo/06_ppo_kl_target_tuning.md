@@ -63,7 +63,7 @@ mean_return=267.642 std_return=21.591
 
 进入：
 
-- `notes/07_ppo_long_obsnorm_training.md`
+- `notes/stage1_2_ppo/07_ppo_long_obsnorm_training.md`
 
 下一节目标：
 

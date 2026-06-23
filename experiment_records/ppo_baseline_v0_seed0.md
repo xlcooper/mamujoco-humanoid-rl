@@ -108,7 +108,7 @@ mean_return=243.977 std_return=7.738
 
 ## 下一步决策
 
-进入 `notes/04_ppo_diagnostics_and_obs_norm.md`：
+进入 `notes/stage1_2_ppo/04_ppo_diagnostics_and_obs_norm.md`：
 
 1. 增加 observation normalization。
 2. 补充更适合分析的训练日志，例如 rolling episode return / rolling episode length。

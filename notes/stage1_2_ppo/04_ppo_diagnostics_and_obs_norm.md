@@ -66,7 +66,7 @@ mean_return=276.612 std_return=6.004
 
 进入：
 
-- `notes/05_ppo_update_control.md`
+- `notes/stage1_2_ppo/05_ppo_update_control.md`
 
 下一节目标：
 

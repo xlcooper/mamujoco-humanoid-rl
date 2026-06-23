@@ -122,7 +122,7 @@ mean_return=72.367 std_return=5.829
 
 ## 下一步决策
 
-进入 `notes/10_ppo_action_clipping_diagnostics.md`：
+进入 `notes/stage1_2_ppo/10_ppo_action_clipping_diagnostics.md`：
 
 1. 保留当前最强行为配置：observation normalization，不启用 target KL，不启用 log std clamp。
 2. 新增动作裁剪诊断指标。

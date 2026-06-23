@@ -6,8 +6,8 @@
 
 ## 已知基础
 
-- 环境检查已完成：`notes/01_project_start_and_env_check.md`
-- 最小训练闭环已完成：`notes/02_minimal_ppo_baseline.md`
+- 环境检查已完成：`notes/stage0_setup/01_project_start_and_env_check.md`
+- 最小训练闭环已完成：`notes/stage1_2_ppo/02_minimal_ppo_baseline.md`
 - AutoDL 基线已记录：`AUTODL_HOST_BASELINE.md`
 - Smoke test 记录：`experiment_records/ppo_smoke_test_001.md`
 
@@ -63,7 +63,7 @@ mean_return=243.977 std_return=7.738
 
 进入：
 
-- `notes/04_ppo_diagnostics_and_obs_norm.md`
+- `notes/stage1_2_ppo/04_ppo_diagnostics_and_obs_norm.md`
 
 下一节目标：
 

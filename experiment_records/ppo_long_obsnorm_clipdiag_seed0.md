@@ -119,7 +119,7 @@ mean_return=326.992 std_return=80.387
 
 ## 下一步决策
 
-进入 `notes/11_ppo_tanh_squashed_policy.md`：
+进入 `notes/stage1_2_ppo/11_ppo_tanh_squashed_policy.md`：
 
 1. 增加可选 `--squash-actions`。
 2. 用 tanh 把 raw Gaussian action 映射到环境动作范围。

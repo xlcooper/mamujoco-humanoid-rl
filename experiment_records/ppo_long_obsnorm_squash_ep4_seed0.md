@@ -127,7 +127,7 @@ mean_return=716.011 std_return=115.490
 
 ## 下一步决策
 
-进入 `notes/13_ppo_squashed_ep4_multiseed.md`：
+进入 `notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md`：
 
 1. 固定当前候选配置。
 2. 跑 seed `1` 和 seed `2`。

@@ -77,6 +77,6 @@ python src/train_ppo.py \
 
 ## 下一节入口
 
-后续进入 `notes/14_stage3_sac_entry.md`。
+后续进入 `notes/stage3_sac/01_stage3_sac_entry.md`。
 
 下一阶段先引入 SAC 作为 off-policy 强基线，与当前 PPO final baseline 对比 return、episode length 和视频行为；多智能体扩展放到更后面。

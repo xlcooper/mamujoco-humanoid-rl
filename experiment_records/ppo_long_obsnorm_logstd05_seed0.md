@@ -124,7 +124,7 @@ mean_return=78.767 std_return=0.132
 
 ## 下一步决策
 
-进入 `notes/09_ppo_relaxed_action_std_control.md`：
+进入 `notes/stage1_2_ppo/09_ppo_relaxed_action_std_control.md`：
 
 1. 保留 action log std 诊断。
 2. 将上限从 `0.5` 放宽到 `1.0`。

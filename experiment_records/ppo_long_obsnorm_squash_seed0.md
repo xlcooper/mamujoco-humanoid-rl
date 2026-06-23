@@ -125,7 +125,7 @@ mean_return=283.664 std_return=13.380
 
 ## 下一步决策
 
-进入 `notes/12_ppo_squashed_update_epochs_tuning.md`：
+进入 `notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md`：
 
 1. 保留 `--squash-actions`。
 2. 将 `update_epochs` 从 `10` 降到 `4`。

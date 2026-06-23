@@ -111,7 +111,7 @@ mean_return=276.612 std_return=6.004
 
 ## 下一步决策
 
-进入 `notes/05_ppo_update_control.md`：
+进入 `notes/stage1_2_ppo/05_ppo_update_control.md`：
 
 1. 增加 `target_kl` 参数。
 2. PPO update 中如果 approximate KL 超过阈值，提前停止当前 update 的后续 epoch。

@@ -66,7 +66,7 @@ mean_return=244.985 std_return=8.967
 
 进入：
 
-- `notes/06_ppo_kl_target_tuning.md`
+- `notes/stage1_2_ppo/06_ppo_kl_target_tuning.md`
 
 下一节目标：
 

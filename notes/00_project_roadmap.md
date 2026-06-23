@@ -146,7 +146,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：SAC 是 off-policy 连续控制算法，使用 replay buffer 复用经验，训练 twin Q critic 和随机 actor，并通过 entropy 项保持探索。
 
-   当前状态：规划中。优先实现标准 SAC，而不是继续堆 PPO 调参。
+   当前状态：规划中。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。
 
 2. automatic entropy tuning
 
@@ -180,8 +180,8 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
 当前状态：
 
-- 正在完成 Stage 2 final baseline 视频记录。
-- 视频补充完成后，进入 SAC 实现与 PPO/SAC 对比。
+- 正在补齐 Stage 2 final baseline 的视频和 TensorBoard 曲线。
+- TensorBoard 重跑完成后，进入 SB3 SAC 与 PPO/SAC 对比。
 
 ### Stage 4：MaMuJoCo 多智能体扩展
 
@@ -226,6 +226,7 @@ SAC 阶段再补充：
 - alpha / entropy temperature
 - replay buffer size
 - samples per second
+- SB3 TensorBoard curves
 
 多智能体阶段再补充：
 
@@ -256,4 +257,4 @@ Stage 2 不是“某个 seed 分数高”就算完成，而是满足：
 4. 能解释每个有效改进为什么保留、每个失败方向为什么放弃。
 5. README、notes 和 experiment records 能指向一个清晰的最终 baseline。
 
-当前已满足。Stage 2 最终 baseline 见 `notes/13_ppo_squashed_ep4_multiseed.md`。
+当前已满足。Stage 2 最终 baseline 见 `notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md`。

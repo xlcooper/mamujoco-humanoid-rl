@@ -7,9 +7,9 @@
 ## 维护规则
 
 1. README 只做项目导航：当前阶段、入口文件、路线和重要约定。细节写入 `notes/`、`experiment_records/`、专题文档或代码注释，避免 README 变成聊天记录。
-2. 项目以教程方式推进。`notes/00` 是长期路线图；其余 numbered notes 一节对应一个阶段任务。
+2. 项目以教程方式推进。`notes/00_project_roadmap.md` 是长期路线图；其余 numbered notes 按 stage 子目录组织，一节对应一个阶段任务。
 3. 一节完成后，必须把该 note 改成“已完成总结”，记录本节目标、完成内容、真实结果、结论和下一节入口；不要继续往旧 note 塞下一阶段任务。
-4. 新阶段必须新建下一个 numbered note，例如 `notes/03_ppo_baseline_v0.md`、`notes/04_xxx.md`。当前任务永远以最新 numbered note 为准。
+4. 新阶段必须放入对应 stage 子目录并新建 numbered note，例如 `notes/stage1_2_ppo/03_ppo_baseline_v0.md`、`notes/stage3_sac/01_stage3_sac_entry.md`。`notes/00_project_roadmap.md` 留在根目录作为总路线图。
 5. 对话只用于管理、答疑、纠错和临时决策。凡是会影响项目推进的结论，都要沉淀到 `notes/`、`experiment_records/` 或 README。
 6. 实验结果使用 Git 管理轻量记录：命令、配置摘要、指标摘要、评估结果、观察和下一步判断。大型产物留在 AutoDL 数据盘。
 7. 未经 AutoDL 真实运行得到的输出、指标、曲线和策略表现，不写成实验结论。
@@ -28,21 +28,22 @@
 | [AUTODL_HOST_BASELINE.md](AUTODL_HOST_BASELINE.md) | AutoDL 硬件、CUDA、Conda 和关键包版本基线 |
 | [CHANGELOG.md](CHANGELOG.md) | 项目更新记录 |
 | [notes/00_project_roadmap.md](notes/00_project_roadmap.md) | 长期路线、实验阶梯和简历产出规划 |
-| [notes/01_project_start_and_env_check.md](notes/01_project_start_and_env_check.md) | 已完成：AutoDL 与 MaMuJoCo 环境检查 |
-| [notes/02_minimal_ppo_baseline.md](notes/02_minimal_ppo_baseline.md) | 已完成：手写 PPO 最小训练闭环和 smoke test |
-| [notes/03_ppo_baseline_v0.md](notes/03_ppo_baseline_v0.md) | 已完成：第一条可分析 PPO baseline |
-| [notes/04_ppo_diagnostics_and_obs_norm.md](notes/04_ppo_diagnostics_and_obs_norm.md) | 已完成：PPO 诊断与 observation normalization |
-| [notes/05_ppo_update_control.md](notes/05_ppo_update_control.md) | 已完成：PPO update control |
-| [notes/06_ppo_kl_target_tuning.md](notes/06_ppo_kl_target_tuning.md) | 已完成：PPO KL target tuning |
-| [notes/07_ppo_long_obsnorm_training.md](notes/07_ppo_long_obsnorm_training.md) | 已完成：PPO long obs norm training |
-| [notes/08_ppo_action_std_control.md](notes/08_ppo_action_std_control.md) | 已完成：PPO action std control |
-| [notes/09_ppo_relaxed_action_std_control.md](notes/09_ppo_relaxed_action_std_control.md) | 已完成：PPO relaxed action std control |
-| [notes/10_ppo_action_clipping_diagnostics.md](notes/10_ppo_action_clipping_diagnostics.md) | 已完成：PPO action clipping diagnostics |
-| [notes/11_ppo_tanh_squashed_policy.md](notes/11_ppo_tanh_squashed_policy.md) | 已完成：PPO tanh-squashed Gaussian policy |
-| [notes/12_ppo_squashed_update_epochs_tuning.md](notes/12_ppo_squashed_update_epochs_tuning.md) | 已完成：PPO squashed update epochs tuning |
-| [notes/13_ppo_squashed_ep4_multiseed.md](notes/13_ppo_squashed_ep4_multiseed.md) | 已完成：PPO squashed EP4 multi-seed |
-| [notes/14_stage3_sac_entry.md](notes/14_stage3_sac_entry.md) | 后续任务：Stage 3 SAC baseline and off-policy comparison |
-| [notes/15_stage2_final_video_rendering.md](notes/15_stage2_final_video_rendering.md) | 当前任务：Stage 2 final baseline video rendering |
+| [notes/stage0_setup/01_project_start_and_env_check.md](notes/stage0_setup/01_project_start_and_env_check.md) | 已完成：AutoDL 与 MaMuJoCo 环境检查 |
+| [notes/stage1_2_ppo/02_minimal_ppo_baseline.md](notes/stage1_2_ppo/02_minimal_ppo_baseline.md) | 已完成：手写 PPO 最小训练闭环和 smoke test |
+| [notes/stage1_2_ppo/03_ppo_baseline_v0.md](notes/stage1_2_ppo/03_ppo_baseline_v0.md) | 已完成：第一条可分析 PPO baseline |
+| [notes/stage1_2_ppo/04_ppo_diagnostics_and_obs_norm.md](notes/stage1_2_ppo/04_ppo_diagnostics_and_obs_norm.md) | 已完成：PPO 诊断与 observation normalization |
+| [notes/stage1_2_ppo/05_ppo_update_control.md](notes/stage1_2_ppo/05_ppo_update_control.md) | 已完成：PPO update control |
+| [notes/stage1_2_ppo/06_ppo_kl_target_tuning.md](notes/stage1_2_ppo/06_ppo_kl_target_tuning.md) | 已完成：PPO KL target tuning |
+| [notes/stage1_2_ppo/07_ppo_long_obsnorm_training.md](notes/stage1_2_ppo/07_ppo_long_obsnorm_training.md) | 已完成：PPO long obs norm training |
+| [notes/stage1_2_ppo/08_ppo_action_std_control.md](notes/stage1_2_ppo/08_ppo_action_std_control.md) | 已完成：PPO action std control |
+| [notes/stage1_2_ppo/09_ppo_relaxed_action_std_control.md](notes/stage1_2_ppo/09_ppo_relaxed_action_std_control.md) | 已完成：PPO relaxed action std control |
+| [notes/stage1_2_ppo/10_ppo_action_clipping_diagnostics.md](notes/stage1_2_ppo/10_ppo_action_clipping_diagnostics.md) | 已完成：PPO action clipping diagnostics |
+| [notes/stage1_2_ppo/11_ppo_tanh_squashed_policy.md](notes/stage1_2_ppo/11_ppo_tanh_squashed_policy.md) | 已完成：PPO tanh-squashed Gaussian policy |
+| [notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md](notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md) | 已完成：PPO squashed update epochs tuning |
+| [notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md](notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md) | 已完成：PPO squashed EP4 multi-seed |
+| [notes/stage1_2_ppo/14_stage2_final_video_rendering.md](notes/stage1_2_ppo/14_stage2_final_video_rendering.md) | 已完成/可复用：Stage 2 final baseline video rendering |
+| [notes/stage1_2_ppo/15_stage2_final_tensorboard.md](notes/stage1_2_ppo/15_stage2_final_tensorboard.md) | 当前任务：Stage 2 final TensorBoard re-run |
+| [notes/stage3_sac/01_stage3_sac_entry.md](notes/stage3_sac/01_stage3_sac_entry.md) | 后续任务：Stage 3 SB3 SAC baseline and off-policy comparison |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
@@ -63,7 +64,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 2 final artifact 补充，正在录制最终单智能体 baseline 展示视频；完成后进入 Stage 3 SAC baseline 与 off-policy 对比。
+当前阶段：Stage 2 final artifact 补充，正在重跑 PPO final baseline 以生成 TensorBoard 曲线；完成后进入 Stage 3 SB3 SAC baseline 与 off-policy 对比。
 
 已完成：
 
@@ -102,7 +103,7 @@
 当前教程：
 
 ```text
-notes/15_stage2_final_video_rendering.md
+notes/stage1_2_ppo/15_stage2_final_tensorboard.md
 ```
 
 新对话接手时，先阅读：
@@ -112,8 +113,8 @@ README.md
 CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
-notes/13_ppo_squashed_ep4_multiseed.md
-notes/14_stage3_sac_entry.md
+notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md
+notes/stage3_sac/01_stage3_sac_entry.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
@@ -134,6 +135,9 @@ experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md
 | 路径 | 内容 |
 | --- | --- |
 | `notes/` | 教程笔记、阶段总结、当前任务 |
+| `notes/stage0_setup/` | Stage 0 环境与项目启动 |
+| `notes/stage1_2_ppo/` | Stage 1-2 手写 PPO baseline、优化、最终视频与 TensorBoard |
+| `notes/stage3_sac/` | Stage 3 SB3 SAC baseline 与 PPO/SAC 对比 |
 | `experiment_records/` | Git 管理的轻量实验记录：命令、配置、指标摘要、评估结果、结论 |
 | `src/` | 项目源码：环境适配、PPO、训练、评估 |
 | `scripts/` | 本地或服务器可复用工具脚本 |
@@ -174,8 +178,9 @@ experiment_records/
 | 11 | PPO tanh-squashed Gaussian policy | 已完成 |
 | 12 | PPO squashed update epochs tuning | 已完成 |
 | 13 | PPO squashed EP4 multi-seed | 已完成 |
-| 14 | Stage 3 SAC baseline and off-policy comparison | 后续 |
-| 15 | Stage 2 final baseline video rendering | 当前进行中 |
+| 14 | Stage 2 final baseline video rendering | 已完成/可复用 |
+| 15 | Stage 2 final TensorBoard re-run | 当前进行中 |
+| Stage 3-01 | SB3 SAC baseline and off-policy comparison | 后续 |
 
 ## 阶段状态
 
@@ -190,28 +195,10 @@ experiment_records/
 
 ## 当前任务入口
 
-按 `notes/15_stage2_final_video_rendering.md` 在 AutoDL 上录制最终单智能体 baseline 展示视频，并生成轻量记录：
+按 `notes/stage1_2_ppo/15_stage2_final_tensorboard.md` 在 AutoDL 上重跑最终 PPO baseline，并生成 TensorBoard event 文件：
 
 ```text
-experiment_records/ppo_final_baseline_video_seed1.md
-```
-
-实验记录生成命令模板：
-
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir <run-dir> \
-  --eval-output <eval-output.txt> \
-  --output experiment_records/<name>.md
-```
-
-生成后只提交轻量记录：
-
-```bash
-git add experiment_records/<name>.md
-git commit -m "Record <experiment name> summary"
-git pull --rebase
-git push
+/root/autodl-tmp/Humanoid-runs/ppo_final_tensorboard_seed1/tensorboard/
 ```
 
 ## 官方资料入口

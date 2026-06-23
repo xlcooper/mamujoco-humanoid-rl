@@ -68,7 +68,7 @@ mean_return=72.367 std_return=5.829
 
 进入：
 
-- `notes/10_ppo_action_clipping_diagnostics.md`
+- `notes/stage1_2_ppo/10_ppo_action_clipping_diagnostics.md`
 
 下一节目标：
 

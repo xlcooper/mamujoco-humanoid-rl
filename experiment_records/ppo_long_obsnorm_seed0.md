@@ -120,7 +120,7 @@ mean_return=326.992 std_return=80.387
 
 ## 下一步决策
 
-进入 `notes/08_ppo_action_std_control.md`：
+进入 `notes/stage1_2_ppo/08_ppo_action_std_control.md`：
 
 1. 记录 `action_log_std_mean/min/max`。
 2. 增加可选的 `--action-log-std-min` 和 `--action-log-std-max`。

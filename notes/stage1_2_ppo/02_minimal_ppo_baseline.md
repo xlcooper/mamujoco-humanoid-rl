@@ -76,6 +76,6 @@ python src/evaluate.py --checkpoint /root/autodl-tmp/Humanoid-runs/smoke_ppo/che
 
 进入：
 
-- `notes/03_ppo_baseline_v0.md`
+- `notes/stage1_2_ppo/03_ppo_baseline_v0.md`
 
 下一节目标是跑第一条可分析 PPO baseline，并通过 `experiment_records/` Git 管理结果摘要。

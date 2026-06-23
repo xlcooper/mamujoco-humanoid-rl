@@ -1,8 +1,10 @@
-# 14 后续任务：Stage 3 SAC Baseline and Off-Policy Comparison
+# 01 后续任务：Stage 3 SB3 SAC Baseline and Off-Policy Comparison
 
 ## 本节目标
 
 Stage 2 已经得到一个稳定但视频表现有限的 PPO baseline。Stage 3 改为引入 SAC，作为更适合 MuJoCo 连续控制的 off-policy 强基线。
+
+这一阶段使用 Stable-Baselines3（SB3），不再手写 SAC。原因是 PPO 阶段已经展示了手写算法能力；SAC 阶段更重要的是快速建立强基线、复用成熟实现，并把精力放在对比实验和结果解释上。
 
 本节的目标不是否定 PPO，而是形成更完整的算法对比：
 
@@ -24,24 +26,21 @@ PPO 已经有充分项目价值：
 
 这会让项目叙事从“优化 PPO”升级为“比较 on-policy 与 off-policy 连续控制方法”。
 
-## SAC 主线设计
+## SB3 SAC 主线设计
 
-第一版建议先做标准 SAC baseline：
+第一版建议先做 SB3 SAC baseline：
 
-- replay buffer
-- twin Q networks
-- target Q networks
-- stochastic tanh-squashed Gaussian actor
-- entropy temperature `alpha`
-- automatic entropy tuning
-- soft target update
-- observation normalization 可作为可选项复用 PPO 经验
-- deterministic evaluation 和 video rendering 复用当前评估工具思路
+- 使用 SB3 `SAC`。
+- 使用 Gymnasium-style 单智能体环境 wrapper。
+- 使用 SB3 `Monitor` 记录 episode return/length。
+- 使用 SB3 TensorBoard 记录 actor loss、critic loss、entropy coefficient 等曲线。
+- 先跑 smoke test，再做 `1M-3M` timesteps 长训。
+- 与 PPO final baseline 对比 evaluation return、episode length 和视频行为。
 
 优先目标：
 
-1. 跑通 SAC 训练闭环。
-2. 在短训中验证 loss、Q value、entropy、return 没有明显异常。
+1. 跑通 SB3 SAC 训练入口。
+2. 在短训中验证 return、episode length 和 TensorBoard 曲线正常。
 3. 进行 `1M-3M` timesteps 长训。
 4. 与 PPO final baseline 对比 evaluation return、episode length 和视频行为。
 
@@ -57,7 +56,7 @@ PPO 已经有充分项目价值：
 
    中文解释：SAC 自动调节探索强度，让策略既探索又不过度随机。
 
-   计划：作为 SAC 主线默认实现。
+   计划：使用 SB3 SAC 默认 entropy tuning 作为主线。
 
 3. replay buffer size / batch size tuning
 
@@ -110,9 +109,18 @@ SAC 额外记录：
 - alpha
 - replay buffer size
 
+## 第一节建议任务
+
+下一节应创建 `notes/stage3_sac/02_sb3_sac_smoke_test.md`，完成：
+
+- 安装并确认 `stable-baselines3` 可用。
+- 编写 Gymnasium-compatible Humanoid 单智能体 wrapper，或确认现有 wrapper 是否需要适配。
+- 新增 `src/train_sac_sb3.py`。
+- 跑通一个很短的 SAC smoke test。
+- 确认 TensorBoard 和 evaluation 输出路径。
+
 ## 本节完成标准
 
-- 明确 SAC 代码拆分和训练入口。
-- 新建 SAC 实现 note，开始实现 replay buffer、actor、critic 和训练循环。
-- 跑通 SAC smoke test。
-- 后续完成 SAC 长训后，与 PPO final baseline 做结论对比。
+- 明确 Stage 3 使用 SB3 SAC，不手写 SAC。
+- 明确 HER 暂不作为主线。
+- 明确下一节从 SB3 SAC smoke test 开始。

@@ -75,7 +75,7 @@ mean_return=326.992 std_return=80.387
 
 进入：
 
-- `notes/08_ppo_action_std_control.md`
+- `notes/stage1_2_ppo/08_ppo_action_std_control.md`
 
 下一节目标：
 

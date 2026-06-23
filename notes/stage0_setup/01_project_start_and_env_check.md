@@ -72,5 +72,5 @@ git pull --rebase
 git push
 ```
 
-2. 进入 `notes/02_minimal_ppo_baseline.md`，开始普通 PPO 最小训练闭环。
+2. 进入 `notes/stage1_2_ppo/02_minimal_ppo_baseline.md`，开始普通 PPO 最小训练闭环。
 

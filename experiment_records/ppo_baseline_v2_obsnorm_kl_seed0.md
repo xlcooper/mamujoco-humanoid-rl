@@ -112,7 +112,7 @@ mean_return=244.985 std_return=8.967
 
 ## 下一步决策
 
-进入 `notes/06_ppo_kl_target_tuning.md`：
+进入 `notes/stage1_2_ppo/06_ppo_kl_target_tuning.md`：
 
 1. 保留 observation normalization。
 2. 将 `target_kl` 从 `0.03` 调整到 `0.06`。

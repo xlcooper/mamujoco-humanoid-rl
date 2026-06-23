@@ -112,7 +112,7 @@ mean_return=267.642 std_return=21.591
 
 ## 下一步决策
 
-进入 `notes/07_ppo_long_obsnorm_training.md`：
+进入 `notes/stage1_2_ppo/07_ppo_long_obsnorm_training.md`：
 
 1. 保留 observation normalization。
 2. 暂不启用 KL early stopping。

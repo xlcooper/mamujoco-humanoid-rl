@@ -82,7 +82,7 @@ mean_return=716.011 std_return=115.490
 
 进入：
 
-- `notes/13_ppo_squashed_ep4_multiseed.md`
+- `notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md`
 
 下一节目标：
 

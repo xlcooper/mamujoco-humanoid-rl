@@ -99,7 +99,7 @@ mean_return=283.664 std_return=13.380
 
 进入：
 
-- `notes/12_ppo_squashed_update_epochs_tuning.md`
+- `notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md`
 
 下一节目标：
 
