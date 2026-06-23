@@ -35,9 +35,9 @@ class ActorCritic(nn.Module):
         super().__init__()
 
         # backbone 把原始 observation 编码成隐向量，actor 和 critic 共用它。
-        self.backbone = nn.Sequential(
+        self.backbone = nn.Sequential( # backbone 是一个 MLP，输入是 observation，输出是隐藏层表示。
             nn.Linear(observation_dim, hidden_size),
-            nn.Tanh(),
+            nn.Tanh(), # 隐藏层激活函数使用 Tanh，适合连续动作空间。
             nn.Linear(hidden_size, hidden_size),
             nn.Tanh(),
         )
