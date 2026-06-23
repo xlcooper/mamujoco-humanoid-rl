@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.17 - 2026-06-24
+
+- 做了什么：分析并固化 `sac_sb3_smoke_seed0` 真实结果，将 `notes/stage3_sac/02_sb3_sac_smoke_test.md` 改为已完成总结；补充 `experiment_records/sac_sb3_smoke_seed0.md` 的观察；新增 `notes/stage3_sac/03_sb3_sac_long_training.md` 作为下一节 `1M` timesteps SAC 长训入口，并更新 README 与路线图。
+- 为什么：SB3 SAC smoke test 已经跑通训练、Monitor、TensorBoard、checkpoint、VecNormalize 和 deterministic evaluation 链路，可以从工程验证进入第一条可分析的 SAC baseline 长训。
+
 ## v0.3.16 - 2026-06-24
 
 - 做了什么：进入 Stage 3 SB3 SAC smoke test；新增 Gymnasium 风格 MaMuJoCo 单智能体 wrapper，新增 `src/train_sac_sb3.py`，新增 `notes/stage3_sac/02_sb3_sac_smoke_test.md`，并更新 README 与路线图的当前入口。

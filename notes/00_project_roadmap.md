@@ -146,7 +146,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：SAC 是 off-policy 连续控制算法，使用 replay buffer 复用经验，训练 twin Q critic 和随机 actor，并通过 entropy 项保持探索。
 
-   当前状态：smoke test 推进中。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。当前入口为 `notes/stage3_sac/02_sb3_sac_smoke_test.md`。
+   当前状态：smoke test 已完成，正在推进 `1M` timesteps seed `0` 长训。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。当前入口为 `notes/stage3_sac/03_sb3_sac_long_training.md`。
 
 2. automatic entropy tuning
 
@@ -158,7 +158,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：复用 PPO 阶段经验，处理 Humanoid 高维 observation 尺度差异。
 
-   当前状态：训练入口已默认用 SB3 `VecNormalize` 开启 observation normalization，可通过 `--no-normalize-observations` 关闭；效果等待 AutoDL smoke test 和后续长训验证。
+   当前状态：训练入口已默认用 SB3 `VecNormalize` 开启 observation normalization，可通过 `--no-normalize-observations` 关闭；smoke test 已确认链路可用，效果等待后续长训验证。
 
 4. replay buffer / batch size tuning
 
@@ -181,7 +181,8 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 当前状态：
 
 - Stage 3 入口规划已完成，路线明确为 SB3 SAC baseline 与 PPO/SAC 对比。
-- 当前从 `notes/stage3_sac/02_sb3_sac_smoke_test.md` 推进 SB3 SAC smoke test。
+- SB3 SAC smoke test 已通过：`5000` timesteps seed `0` deterministic evaluation mean return 为 `207.056`。
+- 当前从 `notes/stage3_sac/03_sb3_sac_long_training.md` 推进 `1M` timesteps seed `0` 长训。
 - Stage 2 final TensorBoard re-run 暂缓；它是展示曲线补充，不阻塞 Stage 3。
 
 ### Stage 4：MaMuJoCo 多智能体扩展

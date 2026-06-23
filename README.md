@@ -44,7 +44,8 @@
 | [notes/stage1_2_ppo/14_stage2_final_video_rendering.md](notes/stage1_2_ppo/14_stage2_final_video_rendering.md) | 已完成/可复用：Stage 2 final baseline video rendering |
 | [notes/stage1_2_ppo/15_stage2_final_tensorboard.md](notes/stage1_2_ppo/15_stage2_final_tensorboard.md) | 暂缓任务：Stage 2 final TensorBoard re-run |
 | [notes/stage3_sac/01_stage3_sac_entry.md](notes/stage3_sac/01_stage3_sac_entry.md) | 已完成规划：Stage 3 SB3 SAC baseline and off-policy comparison |
-| [notes/stage3_sac/02_sb3_sac_smoke_test.md](notes/stage3_sac/02_sb3_sac_smoke_test.md) | 当前任务：SB3 SAC smoke test |
+| [notes/stage3_sac/02_sb3_sac_smoke_test.md](notes/stage3_sac/02_sb3_sac_smoke_test.md) | 已完成：SB3 SAC smoke test |
+| [notes/stage3_sac/03_sb3_sac_long_training.md](notes/stage3_sac/03_sb3_sac_long_training.md) | 当前任务：SB3 SAC long training |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
@@ -58,6 +59,7 @@
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md) | 已完成实验：PPO squashed EP4 seed 0 |
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md) | 已完成实验：PPO squashed EP4 seed 1 |
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md) | 已完成实验：PPO squashed EP4 seed 2 |
+| [experiment_records/sac_sb3_smoke_seed0.md](experiment_records/sac_sb3_smoke_seed0.md) | 已完成实验：SB3 SAC smoke test seed 0 |
 | [scripts/summarize_ppo_run.py](scripts/summarize_ppo_run.py) | 从服务器 run 目录生成 Git 管理的轻量实验记录 |
 | [scripts/summarize_sac_run.py](scripts/summarize_sac_run.py) | 从服务器 SB3 SAC run 目录生成 Git 管理的轻量实验记录 |
 | [src/render_policy.py](src/render_policy.py) | 加载 checkpoint 并录制 deterministic evaluation 视频 |
@@ -67,7 +69,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 3 SB3 SAC smoke test。Stage 2 final TensorBoard re-run 暂缓，它只补充展示曲线，不阻塞 Stage 3 的 SAC 强基线推进。
+当前阶段：Stage 3 SB3 SAC long training。Stage 2 final TensorBoard re-run 暂缓，它只补充展示曲线，不阻塞 Stage 3 的 SAC 强基线推进。
 
 已完成：
 
@@ -92,6 +94,7 @@
 - PPO squashed update epochs tuning 实验记录和分析。
 - PPO squashed EP4 seed `0/1/2` 多 seed 稳定性验证。
 - Stage 3 SAC 路线规划，明确使用 SB3 SAC，不再手写 SAC。
+- SB3 SAC smoke test seed `0`，`5000` timesteps 链路验证通过，deterministic evaluation mean return 为 `207.056`。
 
 最终单智能体 baseline：
 
@@ -107,7 +110,7 @@
 当前教程：
 
 ```text
-notes/stage3_sac/02_sb3_sac_smoke_test.md
+notes/stage3_sac/03_sb3_sac_long_training.md
 ```
 
 新对话接手时，先阅读：
@@ -121,6 +124,7 @@ notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md
 notes/stage1_2_ppo/15_stage2_final_tensorboard.md
 notes/stage3_sac/01_stage3_sac_entry.md
 notes/stage3_sac/02_sb3_sac_smoke_test.md
+notes/stage3_sac/03_sb3_sac_long_training.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
@@ -134,6 +138,7 @@ experiment_records/ppo_long_obsnorm_squash_seed0.md
 experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md
 experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md
 experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md
+experiment_records/sac_sb3_smoke_seed0.md
 ```
 
 ## 目录约定
@@ -187,7 +192,8 @@ experiment_records/
 | 14 | Stage 2 final baseline video rendering | 已完成/可复用 |
 | 15 | Stage 2 final TensorBoard re-run | 暂缓/可复用 |
 | Stage 3-01 | SB3 SAC baseline and off-policy comparison | 已完成规划 |
-| Stage 3-02 | SB3 SAC smoke test | 当前进行中 |
+| Stage 3-02 | SB3 SAC smoke test | 已完成 |
+| Stage 3-03 | SB3 SAC long training | 当前进行中 |
 
 ## 阶段状态
 
@@ -202,10 +208,10 @@ experiment_records/
 
 ## 当前任务入口
 
-按 `notes/stage3_sac/02_sb3_sac_smoke_test.md` 在 AutoDL 上跑通 SB3 SAC smoke test，并确认 SB3、TensorBoard、checkpoint、VecNormalize 和 evaluation 输出路径。
+按 `notes/stage3_sac/03_sb3_sac_long_training.md` 在 AutoDL 上运行 `1M` timesteps SB3 SAC seed `0` baseline，并生成 Git 管理的轻量实验记录。
 
 ```text
-/root/autodl-tmp/Humanoid-runs/sac_sb3_smoke_seed0/
+/root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/
 ```
 
 ## 官方资料入口

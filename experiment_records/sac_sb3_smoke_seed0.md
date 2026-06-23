@@ -113,5 +113,7 @@ mean_length=42.667
 
 ## 初步观察
 
-- TODO: 本地 pull 后确认训练、checkpoint、VecNormalize、TensorBoard 和 evaluation 链路是否完整。
-- TODO: 判断 smoke test 是否可以固化为已完成，并决定下一步进入 SAC 长训还是先修参数/环境问题。
+- SB3 SAC 训练入口已跑通，`5000` timesteps 内完成 `136` 个 episode，训练日志中出现 rollout 与 train 指标。
+- `Monitor` 记录正常，tail episode return 范围约 `99.821` 到 `550.734`，episode length 范围约 `23` 到 `114`。
+- deterministic evaluation 可加载 `checkpoints/sac_final.zip` 和 `vecnormalize.pkl`，3 episodes mean return 为 `207.056`，mean length 为 `42.667`。
+- 本次 smoke test 只说明工程链路可用，不作为 SAC 性能结论。下一步可以进入更长的 SAC baseline 训练。
