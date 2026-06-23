@@ -10,4 +10,5 @@ tqdm
 matplotlib
 pandas
 pytest
-
+imageio
+imageio-ffmpeg

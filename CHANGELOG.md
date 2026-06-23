@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.13 - 2026-06-24
+
+- 做了什么：新增 `src/render_policy.py`，支持从 PPO checkpoint 录制 deterministic evaluation 视频；新增 `notes/15_stage2_final_video_rendering.md` 作为当前视频补充任务，并补充视频依赖。
+- 为什么：Stage 2 已经得到稳定单智能体 baseline，补充展示视频可以直观看策略行为，帮助判断分数提升是否对应合理控制。
+
 ## v0.3.12 - 2026-06-24
 
 - 做了什么：分析 `ppo_long_obsnorm_squash_ep4_seed1/seed2` 真实结果，将 `notes/13_ppo_squashed_ep4_multiseed.md` 固化为已完成总结，并新增 `notes/14_stage3_multi_agent_entry.md`。
