@@ -86,7 +86,47 @@ episode=10 return=265.517 length=54
 mean_return=283.664 std_return=13.380
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 07/10 的直接对比
+
+| 指标 | 07/10 no squash | 11 squash | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 326.992 | 283.664 | 11 低于 07，但高于早期短训 baseline |
+| evaluation std | 80.387 | 13.380 | 评估稳定性明显改善 |
+| evaluation episode length | 50-113 | 54-60 | episode 更稳定，但最长长度下降 |
+| tail rolling episode return mean | 324.74 | 296.44 | 尾部训练表现略低 |
+| tail value loss mean | 125.95 | 64.08 | critic 压力明显下降 |
+| tail entropy mean | 54.67 | 32.22 | 探索噪声明显下降 |
+| tail approx KL mean | 0.2990 | 1.1188 | squashed policy 下 update 仍过猛 |
+| tail PPO clip fraction mean | 0.5571 | 0.8774 | 大量样本被 PPO clip |
+| tail action clip fraction mean | 0.9826 | 0.0000 | 动作越界问题被解决 |
+| tail action clip excess mean | 19.55 | 0.0000 | 动作越界幅度归零 |
+
+### 正向结果
+
+- tanh-squashed policy 完全解决了环境动作裁剪问题：`action_clip_fraction=0`。
+- 评估标准差从 `80.387` 降到 `13.380`，策略稳定性明显提升。
+- entropy 从 `54.67` 降到 `32.22`，动作随机性更可控。
+- value loss 从 `125.95` 降到 `64.08`，critic 拟合压力下降。
+
+### 问题
+
+- evaluation mean return 从 `326.992` 降到 `283.664`，还没有超过 07。
+- tail `approx_kl` 升到 `1.1188`，比 07 更高。
+- tail `clip_fraction` 升到 `0.8774`，说明 PPO update 对 squashed policy 来说过猛。
+- 当前 `update_epochs=10` 可能让同一批 rollout 被重复利用得太激进。
+
+## 结论
+
+- tanh-squashed policy 是正确的结构修复：它解决了 raw action 与环境执行动作不一致的问题。
+- 但套用原来的 PPO update 强度后，squashed policy 的 KL 和 clip fraction 过高。
+- 下一步不应回到无界 Gaussian，也不应继续调 action std clamp；应在 squashed policy 上降低 PPO update 强度。
+
+## 下一步决策
+
+进入 `notes/12_ppo_squashed_update_epochs_tuning.md`：
+
+1. 保留 `--squash-actions`。
+2. 将 `update_epochs` 从 `10` 降到 `4`。
+3. 观察是否降低 `approx_kl` 和 PPO `clip_fraction`，同时恢复或提升 return。

@@ -1,4 +1,4 @@
-# 11 当前任务：PPO Tanh-Squashed Gaussian Policy
+# 11 已完成：PPO Tanh-Squashed Gaussian Policy
 
 ## 本节目标
 
@@ -15,7 +15,7 @@
 
 本节引入 tanh-squashed Gaussian policy，让策略天然输出环境合法动作。
 
-## 本节代码变化
+## 已完成代码
 
 1. `src/ppo.py`
    - `ActorCritic` 增加 `squash_actions` 开关（压缩动作）
@@ -35,77 +35,74 @@
 
 默认不传 `--squash-actions` 时，旧实验行为保持不变。
 
-## 本节实验设计
+## 已完成实验
 
-主实验：
+- `experiment_records/ppo_long_obsnorm_squash_seed0.md`
 
-- run name: `ppo_long_obsnorm_squash_seed0`
+核心配置：
+
+- seed: `0`
 - total timesteps: `3000000`
 - normalize observations: `true`
 - squash actions: `true`
 - target KL: 不启用
 - action log std clamp: 不启用
-- seed: `0`
+- update epochs: `10`
 
-## 在服务器运行训练
+## 评估结果
 
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 3000000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_long_obsnorm_squash_seed0 \
-  --normalize-observations \
-  --squash-actions
+```text
+episode=1 return=278.745 length=56
+episode=2 return=306.864 length=60
+episode=3 return=275.209 length=55
+episode=4 return=283.913 length=57
+episode=5 return=300.770 length=59
+episode=6 return=288.241 length=57
+episode=7 return=295.729 length=58
+episode=8 return=275.196 length=55
+episode=9 return=266.453 length=54
+episode=10 return=265.517 length=54
+mean_return=283.664 std_return=13.380
 ```
 
-## 训练完成后评估
-
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_seed0/checkpoints/agent_final.pt \
-  --episodes 10 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_seed0/eval_output.txt
-```
-
-## 生成 Git 管理的实验记录
-
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_seed0/eval_output.txt \
-  --output experiment_records/ppo_long_obsnorm_squash_seed0.md
-```
-
-提交轻量记录：
-
-```bash
-git add experiment_records/ppo_long_obsnorm_squash_seed0.md
-git commit -m "Record PPO long obs norm tanh-squashed seed0 summary"
-git pull --rebase
-git push
-```
-
-## 对比重点
+## 本节分析
 
 和 07/10 对比：
 
-- evaluation mean return 是否超过 `326.992`。
-- evaluation std 是否低于 `80.387`。
-- `action_clip_fraction` 是否接近 `0`。
-- `action_clip_excess_mean` 是否接近 `0`。
-- entropy 是否低于 `54.67`。
-- approx KL 是否低于 `0.2990`。
-- PPO clip fraction 是否低于 `0.5571`。
-- episode length 是否更稳定。
+| 指标 | 07/10 no squash | 11 squash |
+| --- | ---: | ---: |
+| evaluation mean return | 326.992 | 283.664 |
+| evaluation std | 80.387 | 13.380 |
+| evaluation episode length | 50-113 | 54-60 |
+| tail rolling episode return mean | 324.74 | 296.44 |
+| tail value loss mean | 125.95 | 64.08 |
+| tail entropy mean | 54.67 | 32.22 |
+| tail approx KL mean | 0.2990 | 1.1188 |
+| tail PPO clip fraction mean | 0.5571 | 0.8774 |
+| tail action clip fraction mean | 0.9826 | 0.0000 |
+| tail action clip excess mean | 19.55 | 0.0000 |
 
-## 本节完成标准
+观察：
 
-- `ppo_long_obsnorm_squash_seed0` 完成长训。
-- `experiment_records/ppo_long_obsnorm_squash_seed0.md` 被 Git 管理并推回。
-- 判断 tanh-squashed Gaussian 是否成为新的 baseline 默认策略。
+- tanh-squashed policy 完全解决 action clipping 问题。
+- 评估稳定性、entropy 和 value loss 都明显改善。
+- 但 return 低于 07，且 `approx_kl`、PPO `clip_fraction` 过高。
+- 当前 `update_epochs=10` 对 squashed policy 来说过猛。
+
+## 本节结论
+
+- tanh-squashed policy 是正确的结构修复，应继续保留。
+- 当前瓶颈从“动作越界”转为“squashed policy 的 PPO update 过强”。
+- 下一步应降低 update epochs，而不是回到无界 Gaussian 或继续调 action std clamp。
+
+## 下一节
+
+进入：
+
+- `notes/12_ppo_squashed_update_epochs_tuning.md`
+
+下一节目标：
+
+1. 保留 `--squash-actions`。
+2. 将 `update_epochs` 从 `10` 降到 `4`。
+3. 跑同样 `3M` timesteps，对比 return、KL、clip fraction 和稳定性。

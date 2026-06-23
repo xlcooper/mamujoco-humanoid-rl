@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.8 - 2026-06-23
+
+- 做了什么：分析 `ppo_long_obsnorm_squash_seed0` 真实结果，将 `notes/11_ppo_tanh_squashed_policy.md` 固化为已完成总结，并新增 `notes/12_ppo_squashed_update_epochs_tuning.md`。
+- 为什么：tanh-squashed policy 将动作裁剪比例降为 `0`，但 `approx_kl` 和 PPO `clip_fraction` 过高，下一步需要降低 update epochs 来减小 update 强度。
+
 ## v0.3.7 - 2026-06-23
 
 - 做了什么：分析 `ppo_long_obsnorm_clipdiag_seed0` 真实结果，将 `notes/10_ppo_action_clipping_diagnostics.md` 固化为已完成总结，并新增 `notes/11_ppo_tanh_squashed_policy.md`；PPO 增加可选 tanh-squashed Gaussian policy。
