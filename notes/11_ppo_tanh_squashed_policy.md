@@ -18,7 +18,7 @@
 ## 本节代码变化
 
 1. `src/ppo.py`
-   - `ActorCritic` 增加 `squash_actions` 开关
+   - `ActorCritic` 增加 `squash_actions` 开关（压缩动作）
    - `ActorCritic` 保存环境动作边界对应的 `action_scale` 和 `action_bias`
    - 新增 `squash_raw_action(...)`
    - 新增 `unsquash_action(...)`
