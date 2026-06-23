@@ -83,7 +83,45 @@ episode=10 return=518.780 length=113
 mean_return=326.992 std_return=80.387
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与短训 v1 的对比
+
+| 指标 | v1 obs norm 100k | long obs norm 3M | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 276.612 | 326.992 | 长训提升约 18.2% |
+| evaluation std | 6.004 | 80.387 | 长训评估波动明显变大 |
+| evaluation episode length | 50-54 | 50-113 | 策略已经能跑出更长 episode |
+| tail rolling episode return mean | 307.98 | 324.74 | 训练尾部略高于短训 |
+| tail value loss mean | 109.38 | 125.95 | critic 仍在可接受范围 |
+| tail entropy mean | 24.39 | 54.67 | 动作探索强度异常升高 |
+| tail approx KL mean | 0.0934 | 0.2990 | update 幅度过大 |
+| tail clip fraction mean | 0.5028 | 0.5571 | 大量样本仍被 PPO clip |
+
+### 正向结果
+
+- `3M` 长训确实提升了最终评估均值，从 `276.612` 到 `326.992`。
+- 最好 episode 达到 `518.780`，episode length 达到 `113`，说明策略已经学到更长时间保持运动的行为。
+- value loss 没有爆炸，observation normalization 仍应保留。
+
+### 暴露的问题
+
+- 评估波动很大，10 个 episode 从 `230.147` 到 `518.780`，稳定性不足。
+- entropy 从短训约 `24` 上升到 `54+`。当前策略使用可学习的高斯 `log_std`，长训中动作标准差被学得过大。
+- `approx_kl` 均值约 `0.2990`，远高于短训 v1 的 `0.0934`。
+- `clip_fraction` 均值约 `0.5571`，说明超过一半样本处在 PPO clip 区间外，策略更新仍然过猛。
+
+## 结论
+
+- 长训证明当前手写 PPO baseline 有继续提升空间，`3M` 比 `100k` 更强。
+- 但主瓶颈从“是否能学到”转为“探索噪声和策略更新是否失控”。
+- 下一步不应马上做多 seed，因为当前单 seed 已经暴露出明显机制问题。
+- 应先增加 action log std 诊断和上限控制，再做同等 `3M` 对比。
+
+## 下一步决策
+
+进入 `notes/08_ppo_action_std_control.md`：
+
+1. 记录 `action_log_std_mean/min/max`。
+2. 增加可选的 `--action-log-std-min` 和 `--action-log-std-max`。
+3. 跑 `ppo_long_obsnorm_logstd05_seed0`，对比 return、entropy、KL、clip fraction 和稳定性。

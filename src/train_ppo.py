@@ -39,6 +39,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--entropy-coef", type=float, default=0.0)
     parser.add_argument("--max-grad-norm", type=float, default=0.5)
     parser.add_argument("--target-kl", type=float, default=None)
+    parser.add_argument("--action-log-std-min", type=float, default=None)
+    parser.add_argument("--action-log-std-max", type=float, default=None)
     parser.add_argument("--run-root", default=default_run_root())
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--save-every-updates", type=int, default=10)
@@ -99,6 +101,9 @@ def write_header_if_needed(csv_path: Path) -> None:
                 "clip_fraction",
                 "update_epochs_used",
                 "early_stopped",
+                "action_log_std_mean",
+                "action_log_std_min",
+                "action_log_std_max",
             ]
         )
 
@@ -122,6 +127,9 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
                 row["clip_fraction"],
                 row["update_epochs_used"],
                 row["early_stopped"],
+                row["action_log_std_mean"],
+                row["action_log_std_min"],
+                row["action_log_std_max"],
             ]
         )
 
@@ -189,6 +197,8 @@ def main() -> None:
         entropy_coef=args.entropy_coef,
         max_grad_norm=args.max_grad_norm,
         target_kl=args.target_kl,
+        action_log_std_min=args.action_log_std_min,
+        action_log_std_max=args.action_log_std_max,
     )
 
     run_config = vars(args).copy()
@@ -337,6 +347,7 @@ def main() -> None:
                 "rolling_episode_length": rolling_episode_length,
                 "mean_reward": mean_reward,
                 **update_metrics,
+                **agent.action_log_std_metrics(),
             }
             append_metrics(metrics_path, row)
 
@@ -352,7 +363,8 @@ def main() -> None:
                 "entropy={entropy:.4f} "
                 "approx_kl={approx_kl:.6f} "
                 "epochs_used={update_epochs_used:.0f} "
-                "early_stop={early_stopped:.0f}".format(**row)
+                "early_stop={early_stopped:.0f} "
+                "log_std_mean={action_log_std_mean:.3f}".format(**row)
             )
 
             should_save = args.save_every_updates > 0 and update % args.save_every_updates == 0

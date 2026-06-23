@@ -24,6 +24,8 @@ class PPOConfig:
     entropy_coef: float = 0.0
     max_grad_norm: float = 0.5
     target_kl: float | None = None
+    action_log_std_min: float | None = None
+    action_log_std_max: float | None = None
 
 
 class ActorCritic(nn.Module):
@@ -43,7 +45,7 @@ class ActorCritic(nn.Module):
         # actor_mean 是连续动作高斯策略的均值 mu(s)。
         self.actor_mean = nn.Linear(hidden_size, action_dim)
 
-        # 第一版先用状态无关的 log_std，简单、稳定、便于理解。
+        # 状态无关的 log_std：每个动作维度共享一个可学习的探索强度。
         self.actor_log_std = nn.Parameter(torch.zeros(action_dim))
 
         # critic 输出 V(s)，也就是当前状态的预期折扣回报。
@@ -80,6 +82,26 @@ class ActorCritic(nn.Module):
         entropy = distribution.entropy().sum(dim=-1)
 
         return actions, log_prob, entropy, value
+
+    def clamp_action_log_std(
+        self,
+        min_value: float | None,
+        max_value: float | None,
+    ) -> None:
+        if min_value is None and max_value is None:
+            return
+
+        # 优化器更新后把 log_std 拉回范围内，避免探索噪声无限增大。
+        with torch.no_grad():
+            self.actor_log_std.clamp_(min=min_value, max=max_value)
+
+    def action_log_std_metrics(self) -> dict[str, float]:
+        with torch.no_grad():
+            return {
+                "action_log_std_mean": float(self.actor_log_std.mean().item()),
+                "action_log_std_min": float(self.actor_log_std.min().item()),
+                "action_log_std_max": float(self.actor_log_std.max().item()),
+            }
 
 
 class RolloutBuffer:
@@ -250,6 +272,10 @@ def update_ppo(
             # 梯度裁剪防止一次 update 过猛，尤其是 Humanoid 这种高维连续控制。
             nn.utils.clip_grad_norm_(agent.parameters(), config.max_grad_norm)
             optimizer.step()
+            agent.clamp_action_log_std(
+                min_value=config.action_log_std_min,
+                max_value=config.action_log_std_max,
+            )
 
             with torch.no_grad():
                 # approx_kl 和 clip_fraction 用来观察策略更新是否过大。

@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.3 - 2026-06-23
+
+- 做了什么：分析 `ppo_long_obsnorm_seed0` 真实长训结果，将 `notes/07_ppo_long_obsnorm_training.md` 固化为已完成总结，并新增 `notes/08_ppo_action_std_control.md`；同时为 PPO 增加可选 action log std clamp 和日志指标。
+- 为什么：长训将评估均值提升到 `326.992`，但 entropy、approx KL 和 clip fraction 明显过高，说明动作探索噪声和策略更新幅度需要进一步控制。
+
 ## v0.3.2 - 2026-06-23
 
 - 做了什么：分析 `ppo_baseline_v3_obsnorm_kl006_seed0` 真实结果，将 `notes/06_ppo_kl_target_tuning.md` 固化为已完成总结，并新增 `notes/07_ppo_long_obsnorm_training.md`。

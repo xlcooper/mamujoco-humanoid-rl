@@ -1,90 +1,84 @@
-# 07 当前任务：PPO Long Obsnorm Training
+# 07 已完成：PPO Long Obsnorm Training
 
 ## 本节目标
 
 把目前最强的短训配置放大成一个真正的大实验。
 
-前面 `100k` timesteps 的 v0-v3 主要用于验证代码、诊断问题和选择配置。现在已经知道：
+前面 `100k` timesteps 的 v0-v3 主要用于验证代码、诊断问题和选择配置。本节使用当前最强短训配置：
 
-- observation normalization 明显有效。
-- `target_kl=0.03` 太保守。
-- `target_kl=0.06` 比 `0.03` 好，但仍没有超过不加 KL 的 v1。
+- observation normalization
+- no target KL
+- seed 0
+- `3M` timesteps
 
-因此本节先不继续加技巧，而是用当前最强短训配置做长训练。
+## 已完成实验
 
-## 本节实验设计
+- `experiment_records/ppo_long_obsnorm_seed0.md`
 
-主实验：
+核心配置：
 
-- run name: `ppo_long_obsnorm_seed0`
+- seed: `0`
 - total timesteps: `3000000`
 - normalize observations: `true`
 - target KL: 不启用
-- seed: `0`
+- rollout steps: `2048`
+- batch size: `256`
+- update epochs: `10`
+- learning rate: `3e-4`
 
-这次实验的意义不是 smoke test，而是观察 PPO baseline 在更长训练下是否持续提升。
+## 评估结果
 
-## 在服务器运行训练
-
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 3000000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_long_obsnorm_seed0 \
-  --normalize-observations
+```text
+episode=1 return=240.098 length=53
+episode=2 return=322.672 length=74
+episode=3 return=325.133 length=72
+episode=4 return=292.005 length=66
+episode=5 return=328.724 length=70
+episode=6 return=230.147 length=50
+episode=7 return=261.603 length=57
+episode=8 return=356.647 length=78
+episode=9 return=394.110 length=92
+episode=10 return=518.780 length=113
+mean_return=326.992 std_return=80.387
 ```
 
-预计耗时取决于服务器负载。按前面 `100k` 几分钟的速度估算，`3M` 可能在数小时内完成，适合睡前运行。
+## 本节分析
 
-## 训练完成后评估
+和短训 v1 对比：
 
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_seed0/checkpoints/agent_final.pt \
-  --episodes 10 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_seed0/eval_output.txt
-```
+| 指标 | v1 obs norm 100k | long obs norm 3M |
+| --- | ---: | ---: |
+| evaluation mean return | 276.612 | 326.992 |
+| evaluation std | 6.004 | 80.387 |
+| evaluation episode length | 50-54 | 50-113 |
+| tail rolling episode return mean | 307.98 | 324.74 |
+| tail value loss mean | 109.38 | 125.95 |
+| tail entropy mean | 24.39 | 54.67 |
+| tail approx KL mean | 0.0934 | 0.2990 |
+| tail clip fraction mean | 0.5028 | 0.5571 |
 
-这里使用 `10` 个 episode，而不是前面短训的 `5` 个 episode。长训结果更重要，需要稍微降低评估偶然性。
+观察：
 
-## 生成 Git 管理的实验记录
+- 长训让 evaluation mean return 从 `276.612` 提升到 `326.992`，说明 baseline 有继续学习能力。
+- 最好 episode return 达到 `518.780`，episode length 达到 `113`，策略能跑出更长行为。
+- 但评估标准差达到 `80.387`，稳定性明显不足。
+- entropy 从约 `24` 飙升到 `54+`，说明高斯策略的动作标准差被学得过大。
+- `approx_kl` 和 `clip_fraction` 都偏高，策略更新幅度仍然过猛。
 
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_seed0/eval_output.txt \
-  --output experiment_records/ppo_long_obsnorm_seed0.md
-```
+## 本节结论
 
-提交轻量记录：
+- `observation normalization + long training` 是有效主线。
+- 但当前长训不是一个干净稳定的最终 baseline。
+- 下一步优先修动作探索噪声过大的问题，而不是马上做多 seed。
 
-```bash
-git add experiment_records/ppo_long_obsnorm_seed0.md
-git commit -m "Record PPO long obs norm seed0 summary"
-git pull --rebase
-git push
-```
+## 下一节
 
-## 本节需要重点观察
+进入：
 
-- evaluation mean return 是否明显超过 v1 的 `276.612`。
-- tail rolling episode return 是否继续上升，还是进入平台期。
-- episode length 是否明显变长。
-- value loss 是否保持在可控范围。
-- approx KL 和 clip fraction 是否继续偏高。
-- entropy 是否明显下降，策略是否过早变得确定。
+- `notes/08_ppo_action_std_control.md`
 
-## 本节完成标准
+下一节目标：
 
-- `ppo_long_obsnorm_seed0` 完成长训。
-- `experiment_records/ppo_long_obsnorm_seed0.md` 被 Git 管理并推回。
-- 根据长训结果判断下一步：
-  - 如果长训显著提升：进入多 seed 稳定性验证。
-  - 如果长训平台期明显：考虑 learning rate schedule、reward/return normalization 或网络结构调整。
-  - 如果 KL 和 clip fraction 仍过高：重新评估 `target_kl=0.06` 或降低 update epochs。
+1. 为训练日志增加 action log std 诊断。
+2. 增加可选的 action log std clamp。
+3. 跑同样 `3M` timesteps 的对比实验，观察是否降低 entropy、KL 和 clip fraction，并提升稳定性。
