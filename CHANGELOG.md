@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.4 - 2026-06-23
+
+- 做了什么：分析 `ppo_long_obsnorm_logstd05_seed0` 真实结果，将 `notes/08_ppo_action_std_control.md` 固化为已完成总结，并新增 `notes/09_ppo_relaxed_action_std_control.md`。
+- 为什么：`log_std_max=0.5` 成功降低 entropy 和 KL，但策略退化为固定 18 步倒地，说明该上限过紧；下一步测试更宽松的 `log_std_max=1.0`。
+
 ## v0.3.3 - 2026-06-23
 
 - 做了什么：分析 `ppo_long_obsnorm_seed0` 真实长训结果，将 `notes/07_ppo_long_obsnorm_training.md` 固化为已完成总结，并新增 `notes/08_ppo_action_std_control.md`；同时为 PPO 增加可选 action log std clamp 和日志指标。

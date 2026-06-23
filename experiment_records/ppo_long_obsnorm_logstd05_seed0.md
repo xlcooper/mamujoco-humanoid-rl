@@ -85,7 +85,48 @@ episode=10 return=78.983 length=18
 mean_return=78.767 std_return=0.132
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 07 长训基线对比
+
+| 指标 | long obs norm | log std max 0.5 | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 326.992 | 78.767 | 表现严重退化 |
+| evaluation std | 80.387 | 0.132 | 变稳定，但稳定在失败策略 |
+| evaluation episode length | 50-113 | 18 | 每局几乎固定很快倒地 |
+| tail rolling episode return mean | 324.74 | 78.53 | 训练尾部也已经退化 |
+| tail value loss mean | 125.95 | 0.047 | critic 只是在拟合低回报短 episode |
+| tail entropy mean | 54.67 | 20.52 | entropy 被明显压低 |
+| tail approx KL mean | 0.2990 | 0.0535 | KL 被明显压低 |
+| tail clip fraction mean | 0.5571 | 0.4520 | clip fraction 有下降，但仍不低 |
+| tail action log std mean | 未记录 | -0.2121 | 平均探索强度低于初始 `0` |
+| tail action log std max | 未记录 | 0.3545 | 上限生效，未超过 `0.5` |
+
+### 正向结果
+
+- action log std 诊断和 clamp 代码生效。
+- entropy 从 `54+` 降到约 `20.52`。
+- approx KL 从约 `0.2990` 降到约 `0.0535`。
+- 评估波动几乎消失。
+
+### 问题
+
+- 策略退化到固定 18 步左右倒地，evaluation mean return 只有 `78.767`。
+- 这不是有效稳定，而是稳定地失败。
+- `log_std_max=0.5` 对当前 Humanoid PPO 长训过于保守，探索被压得太早或太强。
+- value loss 很低并不代表策略好，只说明 critic 很容易拟合这种短 episode 低回报轨迹。
+
+## 结论
+
+- 硬性限制 action log std 的方向有诊断价值，但 `max=0.5` 不能作为 baseline 默认配置。
+- “降低 entropy / KL” 本身不是目标，必须同时保住 episode length 和 return。
+- 当前最强结果仍是 07 的 `ppo_long_obsnorm_seed0`，虽然它 KL 和 entropy 偏高。
+
+## 下一步决策
+
+进入 `notes/09_ppo_relaxed_action_std_control.md`：
+
+1. 保留 action log std 诊断。
+2. 将上限从 `0.5` 放宽到 `1.0`。
+3. 观察是否能在不压垮探索的情况下降低 entropy、KL 和 clip fraction。
+4. 如果 `1.0` 仍失败，再考虑 action clipping diagnostics 或 squashed Gaussian policy。

@@ -1,22 +1,20 @@
-# 08 当前任务：PPO Action Std Control
+# 08 已完成：PPO Action Std Control
 
 ## 本节目标
 
 控制连续动作高斯策略的探索噪声。
 
-07 的 `3M` 长训已经证明 baseline 会继续提升，但也暴露出明显问题：
+07 的 `3M` 长训证明 baseline 会继续提升，但也暴露出明显问题：
 
-- evaluation mean return: `326.992`，比 `100k` 短训更高。
-- evaluation std: `80.387`，评估波动很大。
-- tail entropy mean: `54.67`，远高于短训约 `24`。
-- tail approx KL mean: `0.2990`，策略更新幅度过大。
-- tail clip fraction mean: `0.5571`，超过一半样本被 PPO clip。
+- evaluation mean return: `326.992`
+- evaluation std: `80.387`
+- tail entropy mean: `54.67`
+- tail approx KL mean: `0.2990`
+- tail clip fraction mean: `0.5571`
 
-当前策略使用可学习的状态无关 `log_std`。如果它在长训中不断变大，动作会越来越随机，即使评估时用均值动作，训练过程也会变得不稳定。
+因此本节增加 action log std 诊断，并尝试 `action_log_std_max=0.5`。
 
-## 本节代码变化
-
-已新增：
+## 已完成代码
 
 - `PPOConfig.action_log_std_min`
 - `PPOConfig.action_log_std_max`
@@ -30,81 +28,74 @@
   - `action_log_std_min`
   - `action_log_std_max`
 
-注意：默认不传这两个参数时，旧实验行为不变。
+默认不传 clamp 参数时，旧实验行为保持不变。
 
-## 本节实验设计
+## 已完成实验
 
-主实验：
+- `experiment_records/ppo_long_obsnorm_logstd05_seed0.md`
 
-- run name: `ppo_long_obsnorm_logstd05_seed0`
+核心配置：
+
+- seed: `0`
 - total timesteps: `3000000`
 - normalize observations: `true`
 - target KL: 不启用
-- action log std max: `0.5`
 - action log std min: `-5.0`
-- seed: `0`
+- action log std max: `0.5`
 
-`log_std=0.5` 对应动作标准差约 `exp(0.5)=1.65`。这不是把探索关掉，而是防止标准差长训后无限变大。
+## 评估结果
 
-## 在服务器运行训练
-
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 3000000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_long_obsnorm_logstd05_seed0 \
-  --normalize-observations \
-  --action-log-std-min -5.0 \
-  --action-log-std-max 0.5
+```text
+episode=1 return=78.515 length=18
+episode=2 return=78.708 length=18
+episode=3 return=78.628 length=18
+episode=4 return=78.952 length=18
+episode=5 return=78.810 length=18
+episode=6 return=78.774 length=18
+episode=7 return=78.810 length=18
+episode=8 return=78.789 length=18
+episode=9 return=78.704 length=18
+episode=10 return=78.983 length=18
+mean_return=78.767 std_return=0.132
 ```
 
-## 训练完成后评估
+## 本节分析
 
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd05_seed0/checkpoints/agent_final.pt \
-  --episodes 10 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd05_seed0/eval_output.txt
-```
+和 07 长训基线对比：
 
-## 生成 Git 管理的实验记录
+| 指标 | long obs norm | log std max 0.5 |
+| --- | ---: | ---: |
+| evaluation mean return | 326.992 | 78.767 |
+| evaluation std | 80.387 | 0.132 |
+| evaluation episode length | 50-113 | 18 |
+| tail rolling episode return mean | 324.74 | 78.53 |
+| tail entropy mean | 54.67 | 20.52 |
+| tail approx KL mean | 0.2990 | 0.0535 |
+| tail clip fraction mean | 0.5571 | 0.4520 |
+| tail action log std mean | 未记录 | -0.2121 |
+| tail action log std max | 未记录 | 0.3545 |
 
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd05_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd05_seed0/eval_output.txt \
-  --output experiment_records/ppo_long_obsnorm_logstd05_seed0.md
-```
+观察：
 
-提交轻量记录：
+- action log std clamp 生效，entropy 和 KL 都明显下降。
+- 但策略直接退化为固定 18 步左右倒地。
+- 评估标准差很低不是好现象，而是失败行为高度一致。
+- `log_std_max=0.5` 对当前任务太保守。
 
-```bash
-git add experiment_records/ppo_long_obsnorm_logstd05_seed0.md
-git commit -m "Record PPO long obs norm log std 05 seed0 summary"
-git pull --rebase
-git push
-```
+## 本节结论
 
-## 对比重点
+- action log std 诊断应该保留。
+- `action_log_std_max=0.5` 不应作为默认 baseline 配置。
+- “压低 entropy / KL” 不能单独作为优化目标，必须同时观察 return 和 episode length。
 
-和 `ppo_long_obsnorm_seed0` 对比：
+## 下一节
 
-- evaluation mean return 是否高于 `326.992`。
-- evaluation std 是否低于 `80.387`。
-- entropy 是否从 `54+` 明显下降。
-- action log std 是否被稳定限制在 `0.5` 以内。
-- approx KL 是否低于 `0.2990`。
-- clip fraction 是否低于 `0.5571`。
-- episode length 是否更稳定。
+进入：
 
-## 本节完成标准
+- `notes/09_ppo_relaxed_action_std_control.md`
 
-- `ppo_long_obsnorm_logstd05_seed0` 完成长训。
-- `experiment_records/ppo_long_obsnorm_logstd05_seed0.md` 被 Git 管理并推回。
-- 判断 action std control 是否应成为后续 baseline 默认配置。
+下一节目标：
+
+1. 将 action log std 上限放宽到 `1.0`。
+2. 继续使用 `3M` timesteps 长训。
+3. 判断较宽松的 std control 能否兼顾探索和稳定。

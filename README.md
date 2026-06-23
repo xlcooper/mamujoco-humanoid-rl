@@ -33,13 +33,15 @@
 | [notes/05_ppo_update_control.md](notes/05_ppo_update_control.md) | 已完成：PPO update control |
 | [notes/06_ppo_kl_target_tuning.md](notes/06_ppo_kl_target_tuning.md) | 已完成：PPO KL target tuning |
 | [notes/07_ppo_long_obsnorm_training.md](notes/07_ppo_long_obsnorm_training.md) | 已完成：PPO long obs norm training |
-| [notes/08_ppo_action_std_control.md](notes/08_ppo_action_std_control.md) | 当前任务：PPO action std control |
+| [notes/08_ppo_action_std_control.md](notes/08_ppo_action_std_control.md) | 已完成：PPO action std control |
+| [notes/09_ppo_relaxed_action_std_control.md](notes/09_ppo_relaxed_action_std_control.md) | 当前任务：PPO relaxed action std control |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
 | [experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md](experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md) | 已完成实验：PPO baseline v2 obs norm + KL |
 | [experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md](experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md) | 已完成实验：PPO baseline v3 obs norm + KL 0.06 |
 | [experiment_records/ppo_long_obsnorm_seed0.md](experiment_records/ppo_long_obsnorm_seed0.md) | 已完成实验：PPO long obs norm |
+| [experiment_records/ppo_long_obsnorm_logstd05_seed0.md](experiment_records/ppo_long_obsnorm_logstd05_seed0.md) | 已完成实验：PPO long obs norm + log std max 0.5 |
 | [scripts/summarize_ppo_run.py](scripts/summarize_ppo_run.py) | 从服务器 run 目录生成 Git 管理的轻量实验记录 |
 | [server/check_autodl_host.sh](server/check_autodl_host.sh) | AutoDL 环境检查脚本 |
 | [src/](src/) | PPO、环境适配和评估代码 |
@@ -62,11 +64,12 @@
 - PPO baseline v3 obs norm + KL 0.06 实验记录和分析。
 - PPO long obs norm 实验记录和分析。
 - PPO action log std clamp 与日志诊断代码。
+- PPO long obs norm + log std max 0.5 实验记录和分析。
 
 当前教程：
 
 ```text
-notes/08_ppo_action_std_control.md
+notes/09_ppo_relaxed_action_std_control.md
 ```
 
 新对话接手时，先阅读：
@@ -76,13 +79,14 @@ README.md
 CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
-notes/08_ppo_action_std_control.md
+notes/09_ppo_relaxed_action_std_control.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
 experiment_records/ppo_baseline_v2_obsnorm_kl_seed0.md
 experiment_records/ppo_baseline_v3_obsnorm_kl006_seed0.md
 experiment_records/ppo_long_obsnorm_seed0.md
+experiment_records/ppo_long_obsnorm_logstd05_seed0.md
 ```
 
 ## 目录约定
@@ -124,14 +128,15 @@ experiment_records/
 | 05 | PPO update control | 已完成 |
 | 06 | PPO KL target tuning | 已完成 |
 | 07 | PPO long obs norm training | 已完成 |
-| 08 | PPO action std control | 当前进行中 |
+| 08 | PPO action std control | 已完成 |
+| 09 | PPO relaxed action std control | 当前进行中 |
 
 ## 当前任务入口
 
-按 `notes/08_ppo_action_std_control.md` 在 AutoDL 上运行 action std control 长训练，并生成：
+按 `notes/09_ppo_relaxed_action_std_control.md` 在 AutoDL 上运行 relaxed action std control 长训练，并生成：
 
 ```text
-experiment_records/ppo_long_obsnorm_logstd05_seed0.md
+experiment_records/ppo_long_obsnorm_logstd10_seed0.md
 ```
 
 实验记录生成命令模板：
