@@ -42,8 +42,9 @@
 | [notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md](notes/stage1_2_ppo/12_ppo_squashed_update_epochs_tuning.md) | 已完成：PPO squashed update epochs tuning |
 | [notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md](notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md) | 已完成：PPO squashed EP4 multi-seed |
 | [notes/stage1_2_ppo/14_stage2_final_video_rendering.md](notes/stage1_2_ppo/14_stage2_final_video_rendering.md) | 已完成/可复用：Stage 2 final baseline video rendering |
-| [notes/stage1_2_ppo/15_stage2_final_tensorboard.md](notes/stage1_2_ppo/15_stage2_final_tensorboard.md) | 当前任务：Stage 2 final TensorBoard re-run |
-| [notes/stage3_sac/01_stage3_sac_entry.md](notes/stage3_sac/01_stage3_sac_entry.md) | 后续任务：Stage 3 SB3 SAC baseline and off-policy comparison |
+| [notes/stage1_2_ppo/15_stage2_final_tensorboard.md](notes/stage1_2_ppo/15_stage2_final_tensorboard.md) | 暂缓任务：Stage 2 final TensorBoard re-run |
+| [notes/stage3_sac/01_stage3_sac_entry.md](notes/stage3_sac/01_stage3_sac_entry.md) | 已完成规划：Stage 3 SB3 SAC baseline and off-policy comparison |
+| [notes/stage3_sac/02_sb3_sac_smoke_test.md](notes/stage3_sac/02_sb3_sac_smoke_test.md) | 当前任务：SB3 SAC smoke test |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
@@ -64,7 +65,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 2 final artifact 补充，正在重跑 PPO final baseline 以生成 TensorBoard 曲线；完成后进入 Stage 3 SB3 SAC baseline 与 off-policy 对比。
+当前阶段：Stage 3 SB3 SAC smoke test。Stage 2 final TensorBoard re-run 暂缓，它只补充展示曲线，不阻塞 Stage 3 的 SAC 强基线推进。
 
 已完成：
 
@@ -88,6 +89,7 @@
 - PPO tanh-squashed Gaussian policy 实验记录和分析。
 - PPO squashed update epochs tuning 实验记录和分析。
 - PPO squashed EP4 seed `0/1/2` 多 seed 稳定性验证。
+- Stage 3 SAC 路线规划，明确使用 SB3 SAC，不再手写 SAC。
 
 最终单智能体 baseline：
 
@@ -103,7 +105,7 @@
 当前教程：
 
 ```text
-notes/stage1_2_ppo/15_stage2_final_tensorboard.md
+notes/stage3_sac/02_sb3_sac_smoke_test.md
 ```
 
 新对话接手时，先阅读：
@@ -114,7 +116,9 @@ CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
 notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md
+notes/stage1_2_ppo/15_stage2_final_tensorboard.md
 notes/stage3_sac/01_stage3_sac_entry.md
+notes/stage3_sac/02_sb3_sac_smoke_test.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
@@ -179,8 +183,9 @@ experiment_records/
 | 12 | PPO squashed update epochs tuning | 已完成 |
 | 13 | PPO squashed EP4 multi-seed | 已完成 |
 | 14 | Stage 2 final baseline video rendering | 已完成/可复用 |
-| 15 | Stage 2 final TensorBoard re-run | 当前进行中 |
-| Stage 3-01 | SB3 SAC baseline and off-policy comparison | 后续 |
+| 15 | Stage 2 final TensorBoard re-run | 暂缓/可复用 |
+| Stage 3-01 | SB3 SAC baseline and off-policy comparison | 已完成规划 |
+| Stage 3-02 | SB3 SAC smoke test | 当前进行中 |
 
 ## 阶段状态
 
@@ -189,16 +194,16 @@ experiment_records/
 | Stage 0 | 项目启动与环境确认 | 已完成 |
 | Stage 1 | 普通 PPO baseline | 已完成 |
 | Stage 2 | 工程优化与消融 | 已完成 |
-| Stage 3 | SAC 强基线与 off-policy 对比 | 未开始 |
+| Stage 3 | SAC 强基线与 off-policy 对比 | 进行中 |
 | Stage 4 | MaMuJoCo 多智能体扩展 | 后续可选 |
 | Stage 5 | 项目总结与简历材料 | 未开始 |
 
 ## 当前任务入口
 
-按 `notes/stage1_2_ppo/15_stage2_final_tensorboard.md` 在 AutoDL 上重跑最终 PPO baseline，并生成 TensorBoard event 文件：
+按 `notes/stage3_sac/02_sb3_sac_smoke_test.md` 在 AutoDL 上跑通 SB3 SAC smoke test，并确认 SB3、TensorBoard、checkpoint、VecNormalize 和 evaluation 输出路径。
 
 ```text
-/root/autodl-tmp/Humanoid-runs/ppo_final_tensorboard_seed1/tensorboard/
+/root/autodl-tmp/Humanoid-runs/sac_sb3_smoke_seed0/
 ```
 
 ## 官方资料入口

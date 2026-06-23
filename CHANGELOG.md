@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.16 - 2026-06-24
+
+- 做了什么：进入 Stage 3 SB3 SAC smoke test；新增 Gymnasium 风格 MaMuJoCo 单智能体 wrapper，新增 `src/train_sac_sb3.py`，新增 `notes/stage3_sac/02_sb3_sac_smoke_test.md`，并更新 README 与路线图的当前入口。
+- 为什么：Stage 2 手写 PPO 已经收束，TensorBoard 补充任务暂缓不影响 SAC 推进；先跑通 SB3 SAC 工程链路，再进行 `1M-3M` timesteps 长训和 PPO/SAC 对比。
+
 ## v0.3.15 - 2026-06-24
 
 - 做了什么：重组 `notes/` 为 stage 子目录；将 PPO 阶段放入 `notes/stage1_2_ppo/`，将 SAC 规划放入 `notes/stage3_sac/`；新增 PPO final TensorBoard 重跑教程，并为 `src/train_ppo.py` 增加 TensorBoard event 写入。
