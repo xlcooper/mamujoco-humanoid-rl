@@ -58,7 +58,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 1，普通 PPO baseline。
+当前阶段：Stage 2，工程优化与消融，正在进行候选 baseline 的多 seed 稳定性验证。
 
 已完成：
 
@@ -81,6 +81,15 @@
 - PPO tanh-squashed Gaussian policy 代码。
 - PPO tanh-squashed Gaussian policy 实验记录和分析。
 - PPO squashed update epochs tuning 实验记录和分析。
+
+当前候选 baseline：
+
+- observation normalization
+- tanh-squashed Gaussian policy
+- update epochs: `4`
+- total timesteps: `3000000`
+- seed 0 evaluation mean return: `716.011`
+- 当前正在等待 seed 1/2 验证结果。
 
 当前教程：
 
@@ -154,6 +163,16 @@ experiment_records/
 | 11 | PPO tanh-squashed Gaussian policy | 已完成 |
 | 12 | PPO squashed update epochs tuning | 已完成 |
 | 13 | PPO squashed EP4 multi-seed | 当前进行中 |
+
+## 阶段状态
+
+| 阶段 | 主题 | 状态 |
+| --- | --- | --- |
+| Stage 0 | 项目启动与环境确认 | 已完成 |
+| Stage 1 | 普通 PPO baseline | 已完成 |
+| Stage 2 | 工程优化与消融 | 当前进行中 |
+| Stage 3 | MaMuJoCo 多智能体对比 | 未开始 |
+| Stage 4 | 项目总结与简历材料 | 未开始 |
 
 ## 当前任务入口
 

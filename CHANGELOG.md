@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.10 - 2026-06-24
+
+- 做了什么：更新 `notes/00_project_roadmap.md` 和 README 的阶段状态，将当前状态修正为 Stage 2 后半段；补充 Stage 2 候选优化方向的中文解释与完成标准。
+- 为什么：当前工作已经超出 Stage 1 普通 PPO baseline，进入工程优化、消融和多 seed 稳定性验证，需要让路线图和 README 与真实项目进度一致。
+
 ## v0.3.9 - 2026-06-24
 
 - 做了什么：分析 `ppo_long_obsnorm_squash_ep4_seed0` 真实结果，将 `notes/12_ppo_squashed_update_epochs_tuning.md` 固化为已完成总结，并新增 `notes/13_ppo_squashed_ep4_multiseed.md`。

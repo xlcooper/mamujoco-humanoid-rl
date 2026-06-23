@@ -19,7 +19,7 @@ seed 0 的结果很好：
 - tail approx KL mean: `0.1038`
 - tail PPO clip fraction mean: `0.4198`
 
-但单 seed 不能证明配置可靠。本节跑 seed `1` 和 seed `2`，用于判断 Stage 1 baseline 是否可以收束。
+但单 seed 不能证明配置可靠。本节跑 seed `1` 和 seed `2`，用于判断 Stage 2 候选 baseline 是否可以收束，并为 Stage 3 多智能体对比提供可靠单智能体对照组。
 
 ## 本节实验设计
 
@@ -127,4 +127,4 @@ git push
 
 - seed 1 和 seed 2 轻量实验记录被 Git 管理并推回。
 - 本地汇总 seed 0/1/2。
-- 判断 Stage 1 是否进入收束总结。
+- 判断 Stage 2 是否进入收束总结，以及是否准备进入 Stage 3。
