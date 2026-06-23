@@ -14,7 +14,7 @@
 
 Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可以用 `partitioning=None` 作为单智能体环境，也可以使用类似 `9|8` 的分区，把机器人拆成多个智能体。
 
-本项目第一阶段先用 `partitioning=None` 跑通普通 PPO。原因是它最接近标准连续控制 PPO，便于检查算法主体、优势估计、策略分布、价值函数和训练循环。多智能体分区放到后续阶段，作为对比和提升空间。
+本项目第一阶段先用 `partitioning=None` 跑通普通 PPO。原因是它最接近标准连续控制 PPO，便于检查算法主体、优势估计、策略分布、价值函数和训练循环。PPO baseline 收束后，下一步优先引入 SAC 作为 off-policy 连续控制对照；多智能体分区放到更后续阶段，作为可选扩展。
 
 参考：
 
@@ -132,16 +132,45 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
 这些方向不是废弃，只是当前问题已经由动作边界诊断、tanh-squashed policy 和 update epochs tuning 得到更直接的推进。Stage 2 已经收束，后续如果 Stage 3 遇到新瓶颈，再按需要回到这些方向。
 
-### Stage 3：MaMuJoCo 多智能体对比
+### Stage 3：SAC 强基线与 off-policy 对比
 
-候选方向：
+目标：
 
-- `partitioning=None` 单智能体 PPO vs `partitioning="9|8"` 分区控制。
-- 参数共享 PPO。
-- centralized critic / MAPPO 风格价值函数。
-- 对比样本效率、稳定性、最终表现和实现复杂度。
+- 在同一个 `partitioning=None` Humanoid 环境中引入 SAC。
+- 将 Stage 2 的 PPO final baseline 作为 on-policy 对照。
+- 判断 off-policy 方法是否能取得更高 return、更长 episode length 和更直观的 locomotion 视频表现。
 
-这里会形成更有辨识度的简历亮点。当前单智能体 PPO 已经完成 seed `0/1/2` 验证，可以开始进入 Stage 3。
+候选方向与中文解释：
+
+1. Soft Actor-Critic baseline
+
+   中文解释：SAC 是 off-policy 连续控制算法，使用 replay buffer 复用经验，训练 twin Q critic 和随机 actor，并通过 entropy 项保持探索。
+
+   当前状态：规划中。优先实现标准 SAC，而不是继续堆 PPO 调参。
+
+2. automatic entropy tuning
+
+   中文解释：自动调节 SAC 的温度系数 `alpha`，让策略探索强度自适应，而不是手动固定 entropy 权重。
+
+   当前状态：计划作为 SAC 主线默认实现。
+
+3. observation normalization
+
+   中文解释：复用 PPO 阶段经验，处理 Humanoid 高维 observation 尺度差异。
+
+   当前状态：计划作为 SAC 可选配置，优先默认开启，再根据结果决定是否做消融。
+
+4. replay buffer / batch size tuning
+
+   中文解释：SAC 强依赖 replay buffer 和 batch 设置，它们决定样本复用效率和 critic 学习稳定性。
+
+   当前状态：跑通标准 SAC 后再调。
+
+5. HER
+
+   中文解释：HER 适合 goal-conditioned sparse reward 任务，把失败轨迹重标成“达成了另一个目标”的成功经验。
+
+   当前状态：暂不作为主线。当前 Humanoid 是 dense reward locomotion，不是标准 goal-conditioned 任务；除非后续把任务改造成目标速度/目标位置形式，否则不优先做。
 
 进入条件：
 
@@ -151,10 +180,21 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
 当前状态：
 
-- 正在进入 Stage 3。
-- 下一步是复核 `partitioning="9|8"` 的多智能体环境接口，并确定第一版多智能体 PPO 路线。
+- 正在完成 Stage 2 final baseline 视频记录。
+- 视频补充完成后，进入 SAC 实现与 PPO/SAC 对比。
 
-### Stage 4：项目总结与简历材料
+### Stage 4：MaMuJoCo 多智能体扩展
+
+候选方向：
+
+- `partitioning=None` 单智能体 PPO/SAC vs `partitioning="9|8"` 分区控制。
+- 参数共享 PPO。
+- centralized critic / MAPPO 风格价值函数。
+- 对比样本效率、稳定性、最终表现和实现复杂度。
+
+这里会形成更有辨识度的多智能体亮点，但不抢在 SAC 之前做。原因是当前最直接的问题是单智能体行为质量和强基线对比；多智能体放在 PPO/SAC 对照之后更自然。
+
+### Stage 5：项目总结与简历材料
 
 目标：
 
@@ -176,6 +216,16 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 - clip fraction
 - explained variance
 - evaluation return across seeds
+
+SAC 阶段再补充：
+
+- actor loss
+- critic loss
+- Q value mean
+- target Q mean
+- alpha / entropy temperature
+- replay buffer size
+- samples per second
 
 多智能体阶段再补充：
 

@@ -2,7 +2,7 @@
 
 目标：围绕 Farama Gymnasium-Robotics 的 MaMuJoCo Humanoid 环境，做一个能写进算法工程师简历的强化学习项目。Windows 本机负责编辑、Git、阅读和结果分析；依赖安装、MuJoCo 验证、PPO 训练、评估和后续渲染统一在 AutoDL Linux 服务器运行。
 
-当前项目路线：先手写普通 PPO baseline，再做可解释的稳定性优化、消融对比和 MaMuJoCo 多智能体扩展。所有实验结论必须来自真实 AutoDL 输出。
+当前项目路线：先手写普通 PPO baseline，再做可解释的稳定性优化和消融对比；PPO 收束后引入 SAC 作为 off-policy 强基线，再视进度扩展到 MaMuJoCo 多智能体。所有实验结论必须来自真实 AutoDL 输出。
 
 ## 维护规则
 
@@ -41,7 +41,7 @@
 | [notes/11_ppo_tanh_squashed_policy.md](notes/11_ppo_tanh_squashed_policy.md) | 已完成：PPO tanh-squashed Gaussian policy |
 | [notes/12_ppo_squashed_update_epochs_tuning.md](notes/12_ppo_squashed_update_epochs_tuning.md) | 已完成：PPO squashed update epochs tuning |
 | [notes/13_ppo_squashed_ep4_multiseed.md](notes/13_ppo_squashed_ep4_multiseed.md) | 已完成：PPO squashed EP4 multi-seed |
-| [notes/14_stage3_multi_agent_entry.md](notes/14_stage3_multi_agent_entry.md) | 已暂停：Stage 3 多智能体入口检查 |
+| [notes/14_stage3_sac_entry.md](notes/14_stage3_sac_entry.md) | 后续任务：Stage 3 SAC baseline and off-policy comparison |
 | [notes/15_stage2_final_video_rendering.md](notes/15_stage2_final_video_rendering.md) | 当前任务：Stage 2 final baseline video rendering |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
@@ -63,7 +63,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 2 final artifact 补充，正在录制最终单智能体 baseline 展示视频；完成后回到 Stage 3 多智能体入口检查。
+当前阶段：Stage 2 final artifact 补充，正在录制最终单智能体 baseline 展示视频；完成后进入 Stage 3 SAC baseline 与 off-policy 对比。
 
 已完成：
 
@@ -113,6 +113,7 @@ CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
 notes/13_ppo_squashed_ep4_multiseed.md
+notes/14_stage3_sac_entry.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
@@ -173,7 +174,7 @@ experiment_records/
 | 11 | PPO tanh-squashed Gaussian policy | 已完成 |
 | 12 | PPO squashed update epochs tuning | 已完成 |
 | 13 | PPO squashed EP4 multi-seed | 已完成 |
-| 14 | Stage 3 多智能体入口检查 | 已暂停 |
+| 14 | Stage 3 SAC baseline and off-policy comparison | 后续 |
 | 15 | Stage 2 final baseline video rendering | 当前进行中 |
 
 ## 阶段状态
@@ -183,8 +184,9 @@ experiment_records/
 | Stage 0 | 项目启动与环境确认 | 已完成 |
 | Stage 1 | 普通 PPO baseline | 已完成 |
 | Stage 2 | 工程优化与消融 | 已完成 |
-| Stage 3 | MaMuJoCo 多智能体对比 | 暂停中，等待视频补充完成后继续 |
-| Stage 4 | 项目总结与简历材料 | 未开始 |
+| Stage 3 | SAC 强基线与 off-policy 对比 | 未开始 |
+| Stage 4 | MaMuJoCo 多智能体扩展 | 后续可选 |
+| Stage 5 | 项目总结与简历材料 | 未开始 |
 
 ## 当前任务入口
 

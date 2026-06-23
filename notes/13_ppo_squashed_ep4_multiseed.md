@@ -12,7 +12,7 @@
 - total timesteps: `3000000`
 - seeds: `0/1/2`
 
-本节的核心问题不是继续追求单 seed 更高分，而是判断这个配置是否能作为 Stage 3 多智能体对比的可靠单智能体 baseline。
+本节的核心问题不是继续追求单 seed 更高分，而是判断这个配置是否能作为后续 SAC/off-policy 对比的可靠 PPO baseline。
 
 ## 实验结果
 
@@ -77,6 +77,6 @@ python src/train_ppo.py \
 
 ## 下一节入口
 
-进入 `notes/14_stage3_multi_agent_entry.md`。
+后续进入 `notes/14_stage3_sac_entry.md`。
 
-下一节先做 MaMuJoCo Humanoid 多智能体分区的接口复核和方案设计，再决定是先做参数共享 PPO，还是直接进入 centralized critic / MAPPO 风格实现。
+下一阶段先引入 SAC 作为 off-policy 强基线，与当前 PPO final baseline 对比 return、episode length 和视频行为；多智能体扩展放到更后面。

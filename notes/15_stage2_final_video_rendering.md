@@ -95,4 +95,4 @@ git push
 - 至少生成 seed 1 的 1 个 mp4 视频。
 - Git 中只记录轻量视频摘要，不提交 mp4。
 - 本地分析后决定是否还需要 seed 0/2 各录 1 个视频。
-- 完成后回到 `notes/14_stage3_multi_agent_entry.md` 继续多智能体入口检查。
+- 完成后进入 `notes/14_stage3_sac_entry.md`，开始 SAC baseline 与 PPO/SAC 对比。

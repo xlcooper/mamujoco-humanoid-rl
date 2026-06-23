@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.14 - 2026-06-24
+
+- 做了什么：调整后续路线，将 Stage 3 从 MaMuJoCo 多智能体入口改为 SAC baseline 与 off-policy 对比；将多智能体移动到后续可选 Stage 4，并重写 `notes/14_stage3_sac_entry.md`。
+- 为什么：PPO baseline 已经形成完整优化与消融叙事，但视频表现说明单智能体控制质量仍有限；优先引入 SAC 更适合形成强连续控制对照，再考虑多智能体扩展。
+
 ## v0.3.13 - 2026-06-24
 
 - 做了什么：新增 `src/render_policy.py`，支持从 PPO checkpoint 录制 deterministic evaluation 视频；新增 `notes/15_stage2_final_video_rendering.md` 作为当前视频补充任务，并补充视频依赖。
