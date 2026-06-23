@@ -40,7 +40,8 @@
 | [notes/10_ppo_action_clipping_diagnostics.md](notes/10_ppo_action_clipping_diagnostics.md) | 已完成：PPO action clipping diagnostics |
 | [notes/11_ppo_tanh_squashed_policy.md](notes/11_ppo_tanh_squashed_policy.md) | 已完成：PPO tanh-squashed Gaussian policy |
 | [notes/12_ppo_squashed_update_epochs_tuning.md](notes/12_ppo_squashed_update_epochs_tuning.md) | 已完成：PPO squashed update epochs tuning |
-| [notes/13_ppo_squashed_ep4_multiseed.md](notes/13_ppo_squashed_ep4_multiseed.md) | 当前任务：PPO squashed EP4 multi-seed |
+| [notes/13_ppo_squashed_ep4_multiseed.md](notes/13_ppo_squashed_ep4_multiseed.md) | 已完成：PPO squashed EP4 multi-seed |
+| [notes/14_stage3_multi_agent_entry.md](notes/14_stage3_multi_agent_entry.md) | 当前任务：Stage 3 多智能体入口检查 |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
@@ -52,13 +53,15 @@
 | [experiment_records/ppo_long_obsnorm_clipdiag_seed0.md](experiment_records/ppo_long_obsnorm_clipdiag_seed0.md) | 已完成实验：PPO action clipping diagnostics |
 | [experiment_records/ppo_long_obsnorm_squash_seed0.md](experiment_records/ppo_long_obsnorm_squash_seed0.md) | 已完成实验：PPO tanh-squashed Gaussian policy |
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md) | 已完成实验：PPO squashed EP4 seed 0 |
+| [experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md) | 已完成实验：PPO squashed EP4 seed 1 |
+| [experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md) | 已完成实验：PPO squashed EP4 seed 2 |
 | [scripts/summarize_ppo_run.py](scripts/summarize_ppo_run.py) | 从服务器 run 目录生成 Git 管理的轻量实验记录 |
 | [server/check_autodl_host.sh](server/check_autodl_host.sh) | AutoDL 环境检查脚本 |
 | [src/](src/) | PPO、环境适配和评估代码 |
 
 ## 当前阶段
 
-当前阶段：Stage 2，工程优化与消融，正在进行候选 baseline 的多 seed 稳定性验证。
+当前阶段：Stage 3，MaMuJoCo 多智能体对比，正在进行多智能体分区环境入口检查。
 
 已完成：
 
@@ -81,20 +84,23 @@
 - PPO tanh-squashed Gaussian policy 代码。
 - PPO tanh-squashed Gaussian policy 实验记录和分析。
 - PPO squashed update epochs tuning 实验记录和分析。
+- PPO squashed EP4 seed `0/1/2` 多 seed 稳定性验证。
 
-当前候选 baseline：
+最终单智能体 baseline：
 
 - observation normalization
 - tanh-squashed Gaussian policy
 - update epochs: `4`
 - total timesteps: `3000000`
 - seed 0 evaluation mean return: `716.011`
-- 当前正在等待 seed 1/2 验证结果。
+- seed 1 evaluation mean return: `899.806`
+- seed 2 evaluation mean return: `861.418`
+- three-seed mean over evaluation means: `825.745`
 
 当前教程：
 
 ```text
-notes/13_ppo_squashed_ep4_multiseed.md
+notes/14_stage3_multi_agent_entry.md
 ```
 
 新对话接手时，先阅读：
@@ -116,6 +122,8 @@ experiment_records/ppo_long_obsnorm_logstd10_seed0.md
 experiment_records/ppo_long_obsnorm_clipdiag_seed0.md
 experiment_records/ppo_long_obsnorm_squash_seed0.md
 experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md
+experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md
+experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md
 ```
 
 ## 目录约定
@@ -162,7 +170,8 @@ experiment_records/
 | 10 | PPO action clipping diagnostics | 已完成 |
 | 11 | PPO tanh-squashed Gaussian policy | 已完成 |
 | 12 | PPO squashed update epochs tuning | 已完成 |
-| 13 | PPO squashed EP4 multi-seed | 当前进行中 |
+| 13 | PPO squashed EP4 multi-seed | 已完成 |
+| 14 | Stage 3 多智能体入口检查 | 当前进行中 |
 
 ## 阶段状态
 
@@ -170,17 +179,16 @@ experiment_records/
 | --- | --- | --- |
 | Stage 0 | 项目启动与环境确认 | 已完成 |
 | Stage 1 | 普通 PPO baseline | 已完成 |
-| Stage 2 | 工程优化与消融 | 当前进行中 |
-| Stage 3 | MaMuJoCo 多智能体对比 | 未开始 |
+| Stage 2 | 工程优化与消融 | 已完成 |
+| Stage 3 | MaMuJoCo 多智能体对比 | 当前进行中 |
 | Stage 4 | 项目总结与简历材料 | 未开始 |
 
 ## 当前任务入口
 
-按 `notes/13_ppo_squashed_ep4_multiseed.md` 在 AutoDL 上运行 seed 1/2 多随机种子实验，并生成：
+按 `notes/14_stage3_multi_agent_entry.md` 在 AutoDL 上运行 MaMuJoCo Humanoid 多智能体分区接口检查，并生成：
 
 ```text
-experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md
-experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md
+experiment_records/mamujoco_humanoid_9x8_env_check.md
 ```
 
 实验记录生成命令模板：

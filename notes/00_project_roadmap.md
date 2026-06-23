@@ -88,7 +88,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：用多个随机种子验证结果是否稳定，避免只在单个 seed 上偶然变好。
 
-   当前状态：正在进行。当前候选 baseline 已完成 seed `0`，正在等待 seed `1/2` 结果，用于判断 Stage 2 是否可以收束。
+   当前状态：已完成。当前候选 baseline 完成 seed `0/1/2`，evaluation mean return 分别为 `716.011`、`899.806`、`861.418`，三 seed mean 为 `825.745`，没有出现 seed 崩塌。
 
 额外推进方向与当前状态：
 
@@ -120,7 +120,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：减少同一批 rollout 被重复训练的轮数，降低 PPO update 强度。
 
-   当前状态：已完成 seed `0`。`observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 将 seed 0 evaluation mean return 提升到 `716.011`，是当前最强候选 baseline。
+   当前状态：已完成。`observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 是 Stage 2 最终单智能体 baseline。
 
 暂未展开方向：
 
@@ -130,7 +130,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 - orthogonal initialization
 - vectorized rollout collection
 
-这些方向不是废弃，只是当前问题已经由动作边界诊断、tanh-squashed policy 和 update epochs tuning 得到更直接的推进。是否继续做，要等 seed `1/2` 验证结果后再决定。
+这些方向不是废弃，只是当前问题已经由动作边界诊断、tanh-squashed policy 和 update epochs tuning 得到更直接的推进。Stage 2 已经收束，后续如果 Stage 3 遇到新瓶颈，再按需要回到这些方向。
 
 ### Stage 3：MaMuJoCo 多智能体对比
 
@@ -141,13 +141,18 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 - centralized critic / MAPPO 风格价值函数。
 - 对比样本效率、稳定性、最终表现和实现复杂度。
 
-这里会形成更有辨识度的简历亮点，但要等单智能体 PPO 稳定后再做。
+这里会形成更有辨识度的简历亮点。当前单智能体 PPO 已经完成 seed `0/1/2` 验证，可以开始进入 Stage 3。
 
 进入条件：
 
-- Stage 2 候选单智能体 baseline 至少完成 seed `0/1/2` 验证。
-- 有明确的最终单智能体对照配置和复现实验命令。
-- 主要失败实验和有效改进已经在 `experiment_records/` 与 `notes/` 中固化。
+- Stage 2 候选单智能体 baseline 至少完成 seed `0/1/2` 验证：已满足。
+- 有明确的最终单智能体对照配置和复现实验命令：已满足。
+- 主要失败实验和有效改进已经在 `experiment_records/` 与 `notes/` 中固化：已满足。
+
+当前状态：
+
+- 正在进入 Stage 3。
+- 下一步是复核 `partitioning="9|8"` 的多智能体环境接口，并确定第一版多智能体 PPO 路线。
 
 ### Stage 4：项目总结与简历材料
 
@@ -201,4 +206,4 @@ Stage 2 不是“某个 seed 分数高”就算完成，而是满足：
 4. 能解释每个有效改进为什么保留、每个失败方向为什么放弃。
 5. README、notes 和 experiment records 能指向一个清晰的最终 baseline。
 
-当前正在进行 seed stability comparison。
+当前已满足。Stage 2 最终 baseline 见 `notes/13_ppo_squashed_ep4_multiseed.md`。

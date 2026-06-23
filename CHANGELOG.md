@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.12 - 2026-06-24
+
+- 做了什么：分析 `ppo_long_obsnorm_squash_ep4_seed1/seed2` 真实结果，将 `notes/13_ppo_squashed_ep4_multiseed.md` 固化为已完成总结，并新增 `notes/14_stage3_multi_agent_entry.md`。
+- 为什么：`observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 完成 seed `0/1/2` 验证，三 seed evaluation mean 为 `825.745`，Stage 2 可以收束并进入 MaMuJoCo 多智能体对比。
+
 ## v0.3.11 - 2026-06-24
 
 - 做了什么：重写 `notes/00_project_roadmap.md` 的 Stage 2 说明，将候选方向、中文解释和当前状态合并到同一结构，并补充额外推进方向。

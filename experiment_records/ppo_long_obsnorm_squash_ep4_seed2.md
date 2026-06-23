@@ -86,7 +86,15 @@ episode=10 return=889.944 length=167
 mean_return=861.418 std_return=122.380
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+- evaluation mean return 为 `861.418`，明显高于 seed 0 的 `716.011`。
+- evaluation episode length 主要集中在 `132-231`，策略存活时间稳定长于早期 baseline。
+- tail rolling episode return mean 约 `729.721`，tail rolling episode length mean 约 `147.185`。
+- tail value loss mean 约 `82.554`，是三个 seed 中最低的一组。
+- tail approx KL mean 约 `0.0783`，tail PPO clip fraction mean 约 `0.4448`，仍有一定 update 幅度，但明显好于 11 的 squashed ep10。
+- tail action clip fraction 为 `0.0000`，动作边界问题继续保持解决。
+
+## 结论
+
+seed 2 同样没有崩塌，并且 evaluation mean return 达到 `861.418`。结合 seed 0/1，当前候选 baseline 具备进入 Stage 3 的稳定性。
