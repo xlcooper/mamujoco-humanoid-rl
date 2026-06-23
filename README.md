@@ -59,7 +59,9 @@
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed1.md) | 已完成实验：PPO squashed EP4 seed 1 |
 | [experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md](experiment_records/ppo_long_obsnorm_squash_ep4_seed2.md) | 已完成实验：PPO squashed EP4 seed 2 |
 | [scripts/summarize_ppo_run.py](scripts/summarize_ppo_run.py) | 从服务器 run 目录生成 Git 管理的轻量实验记录 |
+| [scripts/summarize_sac_run.py](scripts/summarize_sac_run.py) | 从服务器 SB3 SAC run 目录生成 Git 管理的轻量实验记录 |
 | [src/render_policy.py](src/render_policy.py) | 加载 checkpoint 并录制 deterministic evaluation 视频 |
+| [src/evaluate_sac_sb3.py](src/evaluate_sac_sb3.py) | 加载 SB3 SAC checkpoint 并执行 deterministic evaluation |
 | [server/check_autodl_host.sh](server/check_autodl_host.sh) | AutoDL 环境检查脚本 |
 | [src/](src/) | PPO、环境适配和评估代码 |
 
