@@ -86,7 +86,50 @@ episode=10 return=655.458 length=131
 mean_return=716.011 std_return=115.490
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 07 和 11 的直接对比
+
+| 指标 | 07 no squash ep10 | 11 squash ep10 | 12 squash ep4 | 观察 |
+| --- | ---: | ---: | ---: | --- |
+| evaluation mean return | 326.992 | 283.664 | 716.011 | 12 显著最好 |
+| evaluation std | 80.387 | 13.380 | 115.490 | 12 回报更高，但仍有波动 |
+| evaluation episode length | 50-113 | 54-60 | 113-193 | 12 存活时间明显变长 |
+| tail rolling episode return mean | 324.74 | 296.44 | 617.98 | 训练尾部明显提升 |
+| tail rolling episode length mean | 68.23 | 59.26 | 121.45 | 更稳定地跑更久 |
+| tail value loss mean | 125.95 | 64.08 | 144.24 | critic 压力比 11 高，但可接受 |
+| tail entropy mean | 54.67 | 32.22 | 26.64 | 探索噪声明显更低 |
+| tail approx KL mean | 0.2990 | 1.1188 | 0.1038 | update 幅度明显更健康 |
+| tail PPO clip fraction mean | 0.5571 | 0.8774 | 0.4198 | clip fraction 明显下降 |
+| tail action clip fraction mean | 0.9826 | 0.0000 | 0.0000 | 动作越界问题保持解决 |
+| tail action log std mean | 1.7976 | 0.4758 | 0.1482 | std 回到更温和水平 |
+
+### 正向结果
+
+- evaluation mean return 达到 `716.011`，显著超过此前所有单 seed 结果。
+- episode length 达到 `113-193`，说明策略已经学到更长时间的 locomotion。
+- `action_clip_fraction` 和 `action_clip_excess_mean` 均为 `0`，tanh-squashed policy 继续解决动作越界问题。
+- tail `approx_kl` 从 11 的 `1.1188` 降到 `0.1038`。
+- tail PPO `clip_fraction` 从 11 的 `0.8774` 降到 `0.4198`。
+- entropy 从 07 的 `54.67` 和 11 的 `32.22` 降到 `26.64`，探索噪声更温和。
+
+### 仍需注意
+
+- evaluation std 为 `115.490`，绝对波动仍不小。
+- value loss 高于 11，但考虑 12 的 episode 更长、return 更高，critic 目标也更难拟合。
+- 当前只有 seed 0，不能据此直接宣布 Stage 1 baseline 完成。
+
+## 结论
+
+- `observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 是目前最强候选 baseline。
+- 降低 update epochs 是关键：它让 squashed policy 既保持合法动作，又避免 ep10 的 KL/clip fraction 爆炸。
+- Stage 1 下一步应进入多 seed 验证，而不是继续堆新技巧。
+
+## 下一步决策
+
+进入 `notes/13_ppo_squashed_ep4_multiseed.md`：
+
+1. 固定当前候选配置。
+2. 跑 seed `1` 和 seed `2`。
+3. 与 seed `0` 合并分析均值、方差和稳定性。
+4. 若多 seed 仍明显优于旧 baseline，则 Stage 1 可以准备收束。

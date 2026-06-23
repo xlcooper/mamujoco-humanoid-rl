@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.9 - 2026-06-24
+
+- 做了什么：分析 `ppo_long_obsnorm_squash_ep4_seed0` 真实结果，将 `notes/12_ppo_squashed_update_epochs_tuning.md` 固化为已完成总结，并新增 `notes/13_ppo_squashed_ep4_multiseed.md`。
+- 为什么：`update_epochs=4` 在 tanh-squashed policy 上显著提升 return，并降低 KL 与 PPO clip fraction；下一步需要多 seed 验证候选 baseline 是否可靠。
+
 ## v0.3.8 - 2026-06-23
 
 - 做了什么：分析 `ppo_long_obsnorm_squash_seed0` 真实结果，将 `notes/11_ppo_tanh_squashed_policy.md` 固化为已完成总结，并新增 `notes/12_ppo_squashed_update_epochs_tuning.md`。

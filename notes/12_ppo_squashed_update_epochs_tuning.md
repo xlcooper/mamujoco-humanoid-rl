@@ -1,4 +1,4 @@
-# 12 当前任务：PPO Squashed Update Epochs Tuning
+# 12 已完成：PPO Squashed Update Epochs Tuning
 
 ## 本节目标
 
@@ -15,92 +15,78 @@
 - tail `approx_kl` 从 `0.2990` 升到 `1.1188`
 - tail PPO `clip_fraction` 从 `0.5571` 升到 `0.8774`
 
-这说明 squashed policy 结构是对的，但原来的 `update_epochs=10` 对它太激进。
+因此本节保留 `--squash-actions`，将 `update_epochs` 从 `10` 降到 `4`。
 
-## 为什么先调 update epochs
+## 已完成实验
 
-PPO 每次采样一个 rollout 后，会对这批旧数据重复训练多个 epoch。
+- `experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md`
 
-`update_epochs=10` 意味着同一批 rollout 被重复用了 10 轮。对无界 Gaussian 时已经偏猛；对 tanh-squashed policy，log_prob 还包含 tanh Jacobian 修正，策略分布更敏感，重复更新更容易让 KL 和 clip fraction 爆高。
+核心配置：
 
-因此本节先做最直接的 update 强度控制：
-
-- 保留 squashed policy。
-- 不启用 target KL。
-- 不启用 action log std clamp。
-- 将 `update_epochs` 从 `10` 降到 `4`。
-
-## 本节实验设计
-
-主实验：
-
-- run name: `ppo_long_obsnorm_squash_ep4_seed0`
+- seed: `0`
 - total timesteps: `3000000`
 - normalize observations: `true`
 - squash actions: `true`
 - update epochs: `4`
 - target KL: 不启用
 - action log std clamp: 不启用
-- seed: `0`
 
-## 在服务器运行训练
+## 评估结果
 
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 3000000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 4 \
-  --run-name ppo_long_obsnorm_squash_ep4_seed0 \
-  --normalize-observations \
-  --squash-actions
+```text
+episode=1 return=856.341 length=160
+episode=2 return=583.489 length=113
+episode=3 return=655.889 length=133
+episode=4 return=761.233 length=145
+episode=5 return=635.018 length=126
+episode=6 return=989.033 length=193
+episode=7 return=679.054 length=139
+episode=8 return=688.288 length=144
+episode=9 return=656.312 length=132
+episode=10 return=655.458 length=131
+mean_return=716.011 std_return=115.490
 ```
 
-## 训练完成后评估
+## 本节分析
 
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_ep4_seed0/checkpoints/agent_final.pt \
-  --episodes 10 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_ep4_seed0/eval_output.txt
-```
+和 07、11 对比：
 
-## 生成 Git 管理的实验记录
+| 指标 | 07 no squash ep10 | 11 squash ep10 | 12 squash ep4 |
+| --- | ---: | ---: | ---: |
+| evaluation mean return | 326.992 | 283.664 | 716.011 |
+| evaluation std | 80.387 | 13.380 | 115.490 |
+| evaluation episode length | 50-113 | 54-60 | 113-193 |
+| tail rolling episode return mean | 324.74 | 296.44 | 617.98 |
+| tail rolling episode length mean | 68.23 | 59.26 | 121.45 |
+| tail value loss mean | 125.95 | 64.08 | 144.24 |
+| tail entropy mean | 54.67 | 32.22 | 26.64 |
+| tail approx KL mean | 0.2990 | 1.1188 | 0.1038 |
+| tail PPO clip fraction mean | 0.5571 | 0.8774 | 0.4198 |
+| tail action clip fraction mean | 0.9826 | 0.0000 | 0.0000 |
 
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_ep4_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_squash_ep4_seed0/eval_output.txt \
-  --output experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md
-```
+观察：
 
-提交轻量记录：
+- `update_epochs=4` 让 squashed policy 的 KL 和 PPO clip fraction 明显下降。
+- evaluation mean return 大幅提升到 `716.011`。
+- 动作越界问题继续保持为 `0`。
+- episode length 明显变长，策略已经能更稳定地移动更久。
+- evaluation std 仍较高，因此需要多 seed 验证。
 
-```bash
-git add experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md
-git commit -m "Record PPO long obs norm squashed ep4 seed0 summary"
-git pull --rebase
-git push
-```
+## 本节结论
 
-## 对比重点
+- `observation normalization + tanh-squashed Gaussian policy + update_epochs=4` 是当前最强候选 baseline。
+- 12 不是单纯提高 return，而是同时解决了动作越界，并把 update 强度降到更合理水平。
+- 下一步应做多 seed 验证，而不是继续添加新技巧。
 
-和 11 对比：
+## 下一节
 
-- evaluation mean return 是否高于 `283.664`。
-- evaluation std 是否保持低于 07 的 `80.387`。
-- `action_clip_fraction` 是否继续为 `0`。
-- approx KL 是否明显低于 `1.1188`。
-- PPO clip fraction 是否明显低于 `0.8774`。
-- value loss 是否继续低于 07。
-- episode length 是否比 11 更长或更稳定。
+进入：
 
-## 本节完成标准
+- `notes/13_ppo_squashed_ep4_multiseed.md`
 
-- `ppo_long_obsnorm_squash_ep4_seed0` 完成长训。
-- `experiment_records/ppo_long_obsnorm_squash_ep4_seed0.md` 被 Git 管理并推回。
-- 判断 update epochs 4 是否成为 squashed policy 的候选 baseline。
+下一节目标：
+
+1. 固定 12 的候选配置。
+2. 跑 seed `1` 和 seed `2`。
+3. 汇总 seed 0/1/2 的 return、episode length、KL、clip fraction 和动作裁剪指标。
+4. 判断 Stage 1 是否可以收束。
