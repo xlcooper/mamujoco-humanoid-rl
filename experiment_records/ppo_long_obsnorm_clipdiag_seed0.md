@@ -85,7 +85,43 @@ episode=10 return=518.780 length=113
 mean_return=326.992 std_return=80.387
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 07 长训基线对比
+
+本实验只新增诊断指标，不改变训练行为。因此 return、loss、entropy、KL 等指标与 07 完全一致，这是预期结果。
+
+| 指标 | 07 long obs norm | 10 clipdiag | 观察 |
+| --- | ---: | ---: | --- |
+| evaluation mean return | 326.992 | 326.992 | 行为一致 |
+| evaluation std | 80.387 | 80.387 | 行为一致 |
+| tail rolling episode return mean | 324.74 | 324.74 | 行为一致 |
+| tail entropy mean | 54.67 | 54.67 | 行为一致 |
+| tail approx KL mean | 0.2990 | 0.2990 | 行为一致 |
+| tail PPO clip fraction mean | 0.5571 | 0.5571 | 行为一致 |
+| tail action clip fraction mean | 未记录 | 0.9826 | raw action 几乎全部越界 |
+| tail action clip excess mean | 未记录 | 19.55 | 越界幅度极大 |
+| tail action log std mean | 未记录 | 1.7976 | 平均 std 约 `exp(1.7976)=6.04` |
+| tail action log std max | 未记录 | 2.4999 | 最大 std 约 `exp(2.4999)=12.18` |
+
+### 关键发现
+
+- `action_clip_fraction` 约 `0.9826`，说明 tail 中约 98.26% 的动作维度被环境边界裁剪。
+- `action_clip_excess_mean` 约 `19.55`，说明 raw Gaussian action 不只是轻微越界，而是大幅越界。
+- 当前 PPO 计算 log_prob 使用 raw action，但环境实际执行的是 clipped action。
+- 这会造成训练信号和真实执行动作不一致，是比单纯 `log_std` 上限更底层的问题。
+
+## 结论
+
+- 07 的高 entropy、高 KL 和高 PPO clip fraction 很可能与 raw Gaussian action 大量越界有关。
+- 继续猜 `action_log_std_max` 没有意义；08/09 已经证明硬 clamp 容易导致策略退化。
+- 下一步应让策略分布天然输出合法动作，优先实现 tanh-squashed Gaussian policy。
+
+## 下一步决策
+
+进入 `notes/11_ppo_tanh_squashed_policy.md`：
+
+1. 增加可选 `--squash-actions`。
+2. 用 tanh 把 raw Gaussian action 映射到环境动作范围。
+3. PPO log_prob 使用 tanh 变换的 Jacobian 修正。
+4. 跑同样 `3M` timesteps，对比 return、action clipping、entropy、KL 和 PPO clip fraction。

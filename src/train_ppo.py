@@ -41,6 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--target-kl", type=float, default=None)
     parser.add_argument("--action-log-std-min", type=float, default=None)
     parser.add_argument("--action-log-std-max", type=float, default=None)
+    parser.add_argument(
+        "--squash-actions",
+        action="store_true",
+        help="Use tanh-squashed Gaussian actions scaled to the environment action bounds.",
+    )
     parser.add_argument("--run-root", default=default_run_root())
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--save-every-updates", type=int, default=10)
@@ -157,12 +162,17 @@ def save_checkpoint(
     agent: ActorCritic,
     normalize_observations: bool,
     obs_rms: RunningMeanStd | None,
+    action_low: np.ndarray,
+    action_high: np.ndarray,
 ) -> None:
     # checkpoint 同时保存网络参数和 observation normalization 状态。
     checkpoint = {
         "agent_state_dict": agent.state_dict(),
         "normalize_observations": normalize_observations,
         "obs_rms": obs_rms.state_dict() if obs_rms is not None else None,
+        "squash_actions": agent.squash_actions,
+        "action_low": action_low.tolist(),
+        "action_high": action_high.tolist(),
     }
     torch.save(checkpoint, path)
 
@@ -218,6 +228,9 @@ def main() -> None:
         observation_dim=config.observation_dim,
         action_dim=config.action_dim,
         hidden_size=config.hidden_size,
+        squash_actions=args.squash_actions,
+        action_low=env.action_space.low,
+        action_high=env.action_space.high,
     ).to(device)
     optimizer = torch.optim.Adam(agent.parameters(), lr=config.learning_rate, eps=1e-5)
 
@@ -400,6 +413,8 @@ def main() -> None:
                     agent=agent,
                     normalize_observations=args.normalize_observations,
                     obs_rms=obs_rms,
+                    action_low=env.action_space.low,
+                    action_high=env.action_space.high,
                 )
 
         final_checkpoint = checkpoint_dir / "agent_final.pt"
@@ -408,6 +423,8 @@ def main() -> None:
             agent=agent,
             normalize_observations=args.normalize_observations,
             obs_rms=obs_rms,
+            action_low=env.action_space.low,
+            action_high=env.action_space.high,
         )
         print(f"training_done=true run_dir={run_dir}")
     finally:

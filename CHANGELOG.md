@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.7 - 2026-06-23
+
+- 做了什么：分析 `ppo_long_obsnorm_clipdiag_seed0` 真实结果，将 `notes/10_ppo_action_clipping_diagnostics.md` 固化为已完成总结，并新增 `notes/11_ppo_tanh_squashed_policy.md`；PPO 增加可选 tanh-squashed Gaussian policy。
+- 为什么：诊断显示 tail 中约 `98.26%` 的 raw action 维度被环境裁剪，且平均越界幅度约 `19.55`，说明无界 Gaussian policy 与环境动作边界严重不匹配。
+
 ## v0.3.6 - 2026-06-23
 
 - 做了什么：统一 `notes/` 中“已完成代码 / 本节代码变化”的写法，按文件列清具体代码改动；README 新增对应维护规则。

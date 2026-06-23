@@ -31,8 +31,18 @@ class PPOConfig:
 class ActorCritic(nn.Module):
     """共享骨干网络，分别输出策略分布和状态价值。"""
 
-    def __init__(self, observation_dim: int, action_dim: int, hidden_size: int) -> None:
+    def __init__(
+        self,
+        observation_dim: int,
+        action_dim: int,
+        hidden_size: int,
+        squash_actions: bool = False,
+        action_low: np.ndarray | None = None,
+        action_high: np.ndarray | None = None,
+    ) -> None:
         super().__init__()
+        self.squash_actions = squash_actions
+        self.squash_epsilon = 1e-6
 
         # backbone 把原始 observation 编码成隐向量，actor 和 critic 共用它。
         self.backbone = nn.Sequential( # backbone 是一个 MLP，输入是 observation，输出是隐藏层表示。
@@ -51,6 +61,45 @@ class ActorCritic(nn.Module):
         # critic 输出 V(s)，也就是当前状态的预期折扣回报。
         self.critic = nn.Linear(hidden_size, 1)
 
+        if action_low is None or action_high is None:
+            action_low = -np.ones(action_dim, dtype=np.float32)
+            action_high = np.ones(action_dim, dtype=np.float32)
+
+        action_low_tensor = torch.as_tensor(action_low, dtype=torch.float32)
+        action_high_tensor = torch.as_tensor(action_high, dtype=torch.float32)
+
+        # persistent=False 表示这些动作边界随模型移动到 GPU，但不写入 state_dict。
+        self.register_buffer(
+            "action_scale",
+            (action_high_tensor - action_low_tensor) / 2.0,
+            persistent=False,
+        )
+        self.register_buffer(
+            "action_bias",
+            (action_high_tensor + action_low_tensor) / 2.0,
+            persistent=False,
+        )
+
+    def configure_action_squash(
+        self,
+        squash_actions: bool,
+        action_low: np.ndarray,
+        action_high: np.ndarray,
+    ) -> None:
+        self.squash_actions = squash_actions
+        action_low_tensor = torch.as_tensor(
+            action_low,
+            dtype=torch.float32,
+            device=self.action_scale.device,
+        )
+        action_high_tensor = torch.as_tensor(
+            action_high,
+            dtype=torch.float32,
+            device=self.action_scale.device,
+        )
+        self.action_scale.copy_((action_high_tensor - action_low_tensor) / 2.0)
+        self.action_bias.copy_((action_high_tensor + action_low_tensor) / 2.0)
+
     def forward(
         self,
         observations: torch.Tensor,
@@ -61,6 +110,31 @@ class ActorCritic(nn.Module):
         action_log_std = self.actor_log_std.expand_as(action_mean)
         value = self.critic(hidden).squeeze(-1)
         return action_mean, action_log_std, value
+
+    def squash_raw_action(self, raw_actions: torch.Tensor) -> torch.Tensor:
+        return torch.tanh(raw_actions) * self.action_scale + self.action_bias
+
+    def unsquash_action(self, actions: torch.Tensor) -> torch.Tensor:
+        normalized_actions = (actions - self.action_bias) / self.action_scale
+        normalized_actions = torch.clamp(
+            normalized_actions,
+            -1.0 + self.squash_epsilon,
+            1.0 - self.squash_epsilon,
+        )
+        return torch.atanh(normalized_actions)
+
+    def squashed_log_prob(
+        self,
+        distribution: Normal,
+        raw_actions: torch.Tensor,
+    ) -> torch.Tensor:
+        # tanh-squash 会改变概率密度，需要减去变换的 log-Jacobian。
+        squashed_actions = torch.tanh(raw_actions)
+        raw_log_prob = distribution.log_prob(raw_actions)
+        correction = torch.log(
+            self.action_scale * (1.0 - squashed_actions.pow(2)) + self.squash_epsilon
+        )
+        return (raw_log_prob - correction).sum(dim=-1)
 
     def get_action_and_value(
         self,
@@ -73,6 +147,20 @@ class ActorCritic(nn.Module):
         # 每个动作维度一个 Normal，整体策略是对角高斯分布。
         distribution = Normal(action_mean, action_std)
 
+        if self.squash_actions:
+            if actions is None:
+                # 采样 raw action 后用 tanh 映射到环境动作范围，避免 env 再硬裁剪。
+                raw_actions = distribution.sample()
+                actions = self.squash_raw_action(raw_actions)
+            else:
+                # PPO update 阶段 buffer 里存的是 squashed action，需要反解回 raw action。
+                raw_actions = self.unsquash_action(actions)
+
+            log_prob = self.squashed_log_prob(distribution, raw_actions)
+            # 这里记录 base Gaussian entropy，作为探索强度诊断；entropy_coef 当前为 0。
+            entropy = distribution.entropy().sum(dim=-1)
+            return actions, log_prob, entropy, value
+
         if actions is None:
             # 采样阶段：从当前随机策略中采样动作，用于探索。
             actions = distribution.sample()
@@ -82,6 +170,12 @@ class ActorCritic(nn.Module):
         entropy = distribution.entropy().sum(dim=-1)
 
         return actions, log_prob, entropy, value
+
+    def get_deterministic_action(self, observations: torch.Tensor) -> torch.Tensor:
+        action_mean, _, _ = self.forward(observations)
+        if self.squash_actions:
+            return self.squash_raw_action(action_mean)
+        return action_mean
 
     def clamp_action_log_std(
         self,

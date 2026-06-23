@@ -31,6 +31,8 @@ def load_agent_checkpoint(
     checkpoint_path: Path,
     agent: ActorCritic,
     observation_dim: int,
+    action_low: np.ndarray,
+    action_high: np.ndarray,
     device: torch.device,
 ) -> RunningMeanStd | None:
     checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -41,6 +43,11 @@ def load_agent_checkpoint(
         return None
 
     agent.load_state_dict(checkpoint["agent_state_dict"])
+    agent.configure_action_squash(
+        squash_actions=bool(checkpoint.get("squash_actions", False)),
+        action_low=np.asarray(checkpoint.get("action_low", action_low), dtype=np.float32),
+        action_high=np.asarray(checkpoint.get("action_high", action_high), dtype=np.float32),
+    )
 
     if not checkpoint.get("normalize_observations", False):
         return None
@@ -82,6 +89,8 @@ def main() -> None:
         checkpoint_path=Path(args.checkpoint),
         agent=agent,
         observation_dim=observation_dim,
+        action_low=env.action_space.low,
+        action_high=env.action_space.high,
         device=device,
     )
     agent.eval()
@@ -107,10 +116,10 @@ def main() -> None:
                 ).unsqueeze(0)
 
                 with torch.no_grad():
-                    # 评估阶段不用随机采样，直接用高斯均值作为确定性动作。
-                    action_mean, _, _ = agent.forward(observation_tensor)
+                    # 评估阶段不用随机采样，直接用确定性动作。
+                    action_tensor = agent.get_deterministic_action(observation_tensor)
 
-                action = action_mean.squeeze(0).cpu().numpy()
+                action = action_tensor.squeeze(0).cpu().numpy()
                 step_result = env.step(action)
 
                 observation = step_result.observation
