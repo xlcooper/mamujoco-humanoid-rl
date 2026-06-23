@@ -1,99 +1,77 @@
-# 09 当前任务：PPO Relaxed Action Std Control
+# 09 已完成：PPO Relaxed Action Std Control
 
 ## 本节目标
 
-继续验证 action std control，但把上限从 `0.5` 放宽到 `1.0`。
+继续验证 action std control，把上限从 `0.5` 放宽到 `1.0`。
 
-08 说明 `log_std_max=0.5` 能压低 entropy 和 KL，但会把策略压到固定 18 步倒地。这个实验不能证明“std control 无效”，只能证明 `0.5` 太紧。
+08 说明 `log_std_max=0.5` 能压低 entropy 和 KL，但会把策略压到固定 18 步倒地。因此本节测试更宽松的 `action_log_std_max=1.0`。
 
-本节做更温和的对比：`action_log_std_max=1.0`。
+## 已完成实验
 
-## 为什么不是直接放弃 std control
+- `experiment_records/ppo_long_obsnorm_logstd10_seed0.md`
 
-07 的长训基线虽然最好，但存在明显风险：
+核心配置：
 
-- evaluation std: `80.387`
-- tail entropy mean: `54.67`
-- tail approx KL mean: `0.2990`
-- tail clip fraction mean: `0.5571`
-
-这些指标说明训练过程仍然不稳定。08 的失败告诉我们不能用太紧的 clamp，但不代表完全不控制探索就是最终答案。
-
-## 本节实验设计
-
-主实验：
-
-- run name: `ppo_long_obsnorm_logstd10_seed0`
+- seed: `0`
 - total timesteps: `3000000`
 - normalize observations: `true`
 - target KL: 不启用
-- action log std max: `1.0`
 - action log std min: `-5.0`
-- seed: `0`
+- action log std max: `1.0`
 
-`log_std=1.0` 对应动作标准差约 `exp(1.0)=2.72`，比 `0.5` 宽松很多，但仍低于 07 长训中推测出的极高探索强度。
+## 评估结果
 
-## 在服务器运行训练
-
-```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
-python src/train_ppo.py \
-  --total-timesteps 3000000 \
-  --rollout-steps 2048 \
-  --batch-size 256 \
-  --update-epochs 10 \
-  --run-name ppo_long_obsnorm_logstd10_seed0 \
-  --normalize-observations \
-  --action-log-std-min -5.0 \
-  --action-log-std-max 1.0
+```text
+episode=1 return=71.529 length=19
+episode=2 return=86.694 length=24
+episode=3 return=72.421 length=19
+episode=4 return=71.844 length=20
+episode=5 return=78.150 length=19
+episode=6 return=67.844 length=20
+episode=7 return=73.175 length=19
+episode=8 return=68.725 length=19
+episode=9 return=66.995 length=19
+episode=10 return=66.299 length=19
+mean_return=72.367 std_return=5.829
 ```
 
-## 训练完成后评估
+## 本节分析
 
-```bash
-python src/evaluate.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd10_seed0/checkpoints/agent_final.pt \
-  --episodes 10 \
-  | tee /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd10_seed0/eval_output.txt
-```
+和 07、08 对比：
 
-## 生成 Git 管理的实验记录
+| 指标 | 07 no clamp | 08 max 0.5 | 09 max 1.0 |
+| --- | ---: | ---: | ---: |
+| evaluation mean return | 326.992 | 78.767 | 72.367 |
+| evaluation std | 80.387 | 0.132 | 5.829 |
+| evaluation episode length | 50-113 | 18 | 19-24 |
+| tail rolling episode return mean | 324.74 | 78.53 | 185.69 |
+| tail entropy mean | 54.67 | 20.52 | 39.15 |
+| tail approx KL mean | 0.2990 | 0.0535 | 4.2092 |
+| tail clip fraction mean | 0.5571 | 0.4520 | 0.7680 |
+| tail action log std mean | 未记录 | -0.2121 | 0.8843 |
+| tail action log std max | 未记录 | 0.3545 | 1.0000 |
 
-```bash
-python scripts/summarize_ppo_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd10_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/ppo_long_obsnorm_logstd10_seed0/eval_output.txt \
-  --output experiment_records/ppo_long_obsnorm_logstd10_seed0.md
-```
+观察：
 
-提交轻量记录：
+- `log_std_max=1.0` 没有恢复 07 的表现。
+- 09 的 entropy 介于 07 和 08 之间，但 return 仍然崩塌。
+- `approx_kl` 和 `clip_fraction` 反而比 07 更糟。
+- `action_log_std_max` 长期触顶，说明策略持续想增加探索噪声。
 
-```bash
-git add experiment_records/ppo_long_obsnorm_logstd10_seed0.md
-git commit -m "Record PPO long obs norm log std 10 seed0 summary"
-git pull --rebase
-git push
-```
+## 本节结论
 
-## 对比重点
+- 硬性 action log std clamp 路线暂时失败。
+- `0.5` 太紧，`1.0` 又导致 KL/clip fraction 爆炸，二者都不是好 baseline。
+- 下一步应诊断 raw Gaussian action 被环境裁剪的比例，而不是继续猜 std 上限。
 
-同时对比 07 和 08：
+## 下一节
 
-- 是否明显超过 `logstd05` 的 `78.767`。
-- 是否接近或超过 07 的 `326.992`。
-- evaluation std 是否低于 07 的 `80.387`。
-- entropy 是否处在 `20.52` 和 `54.67` 之间。
-- approx KL 是否低于 07 的 `0.2990`。
-- clip fraction 是否低于 07 的 `0.5571`。
-- action log std max 是否接近或触碰 `1.0`。
+进入：
 
-## 本节完成标准
+- `notes/10_ppo_action_clipping_diagnostics.md`
 
-- `ppo_long_obsnorm_logstd10_seed0` 完成长训。
-- `experiment_records/ppo_long_obsnorm_logstd10_seed0.md` 被 Git 管理并推回。
-- 根据结果判断：
-  - 如果表现接近 07 且指标更稳：将 `log_std_max=1.0` 作为候选 baseline。
-  - 如果仍明显退化：放弃硬 clamp，进入 action clipping diagnostics 或 squashed Gaussian policy。
+下一节目标：
+
+1. 增加动作裁剪比例日志。
+2. 用当前最强配置重跑 `3M` 长训。
+3. 判断是否需要实现 tanh-squashed Gaussian policy。

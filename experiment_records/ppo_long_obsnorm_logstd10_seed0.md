@@ -85,7 +85,46 @@ episode=10 return=66.299 length=19
 mean_return=72.367 std_return=5.829
 ```
 
-## 初步观察
+## 分析
 
-- TODO: 本地 pull 后分析 episodic return、episode length、value loss、entropy、approx KL 和 clip fraction。
-- TODO: 判断下一步是否需要 observation normalization / reward scaling。
+### 与 07、08 的直接对比
+
+| 指标 | 07 no clamp | 08 max 0.5 | 09 max 1.0 | 观察 |
+| --- | ---: | ---: | ---: | --- |
+| evaluation mean return | 326.992 | 78.767 | 72.367 | 09 仍严重退化 |
+| evaluation std | 80.387 | 0.132 | 5.829 | 09 稳定性比 07 高，但稳定在低回报 |
+| evaluation episode length | 50-113 | 18 | 19-24 | 09 仍很快倒地 |
+| tail rolling episode return mean | 324.74 | 78.53 | 185.69 | 训练尾部中途有起色，但最后崩塌 |
+| tail entropy mean | 54.67 | 20.52 | 39.15 | entropy 处于 07 和 08 中间 |
+| tail approx KL mean | 0.2990 | 0.0535 | 4.2092 | KL 严重爆炸 |
+| tail clip fraction mean | 0.5571 | 0.4520 | 0.7680 | PPO clip 更严重 |
+| tail action log std mean | 未记录 | -0.2121 | 0.8843 | std 明显贴近上限 |
+| tail action log std max | 未记录 | 0.3545 | 1.0000 | clamp 上限被持续触碰 |
+
+### 正向结果
+
+- `log_std_max=1.0` 比 `0.5` 更宽松，训练 tail 中出现过更高 episode return，例如 `444.388`。
+- action log std 指标证明 clamp 代码和日志正常工作。
+
+### 问题
+
+- 最终确定性评估只有 `72.367`，甚至低于 `log_std_max=0.5`。
+- tail 中 `approx_kl` 均值达到 `4.2092`，远高于 07 的 `0.2990`。
+- tail 中 `clip_fraction` 均值达到 `0.7680`，说明大部分样本都进入 PPO clip 区间。
+- `action_log_std_max` 长期等于 `1.0`，说明策略持续想把探索噪声推高到上限。
+- 硬 clamp 没有解决根因，只是在不同上限下制造不同形式的失败。
+
+## 结论
+
+- `log_std_max=0.5` 和 `log_std_max=1.0` 都不能作为当前 baseline 默认配置。
+- 不能继续盲目调 action std 上限。
+- 更可能的问题是高斯采样动作大量超出环境动作边界，被 `envs.py` 裁剪后产生训练-执行不一致。
+
+## 下一步决策
+
+进入 `notes/10_ppo_action_clipping_diagnostics.md`：
+
+1. 保留当前最强行为配置：observation normalization，不启用 target KL，不启用 log std clamp。
+2. 新增动作裁剪诊断指标。
+3. 重新跑一条 `3M` 长训，记录 raw Gaussian action 被环境裁剪的比例。
+4. 如果动作裁剪比例很高，下一步再实现 tanh-squashed Gaussian policy 或动作分布缩放。

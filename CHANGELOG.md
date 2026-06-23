@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.5 - 2026-06-23
+
+- 做了什么：分析 `ppo_long_obsnorm_logstd10_seed0` 真实结果，将 `notes/09_ppo_relaxed_action_std_control.md` 固化为已完成总结，并新增 `notes/10_ppo_action_clipping_diagnostics.md`；训练日志新增 action clipping diagnostics。
+- 为什么：`log_std_max=1.0` 仍导致策略低回报退化，并出现 KL 与 PPO clip fraction 爆炸；下一步应诊断 raw Gaussian action 被环境裁剪的比例。
+
 ## v0.3.4 - 2026-06-23
 
 - 做了什么：分析 `ppo_long_obsnorm_logstd05_seed0` 真实结果，将 `notes/08_ppo_action_std_control.md` 固化为已完成总结，并新增 `notes/09_ppo_relaxed_action_std_control.md`。

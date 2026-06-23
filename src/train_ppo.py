@@ -99,6 +99,8 @@ def write_header_if_needed(csv_path: Path) -> None:
                 "entropy",
                 "approx_kl",
                 "clip_fraction",
+                "action_clip_fraction",
+                "action_clip_excess_mean",
                 "update_epochs_used",
                 "early_stopped",
                 "action_log_std_mean",
@@ -125,6 +127,8 @@ def append_metrics(csv_path: Path, row: dict[str, float | int]) -> None:
                 row["entropy"],
                 row["approx_kl"],
                 row["clip_fraction"],
+                row["action_clip_fraction"],
+                row["action_clip_excess_mean"],
                 row["update_epochs_used"],
                 row["early_stopped"],
                 row["action_log_std_mean"],
@@ -241,6 +245,8 @@ def main() -> None:
             )
 
             rollout_rewards: list[float] = []
+            rollout_action_clip_fractions: list[float] = []
+            rollout_action_clip_excesses: list[float] = []
             last_done = False
 
             # Rollout 阶段：用当前策略和环境交互，收集 PPO 训练所需数据。
@@ -265,6 +271,19 @@ def main() -> None:
                 action = action_tensor.squeeze(0).cpu().numpy()
                 log_prob = float(log_prob_tensor.item())
                 value = float(value_tensor.item())
+
+                # 诊断高斯策略采样动作是否大量超出环境动作边界。
+                action_low = env.action_space.low
+                action_high = env.action_space.high
+                below_low = action < action_low
+                above_high = action > action_high
+                clipped_dimensions = below_low | above_high
+                action_clip_fraction = float(np.mean(clipped_dimensions))
+                action_clip_excess = np.maximum(action_low - action, 0.0)
+                action_clip_excess += np.maximum(action - action_high, 0.0)
+                action_clip_excess_mean = float(np.mean(action_clip_excess))
+                rollout_action_clip_fractions.append(action_clip_fraction)
+                rollout_action_clip_excesses.append(action_clip_excess_mean)
 
                 step_result = env.step(action)
 
@@ -332,6 +351,8 @@ def main() -> None:
 
             # 训练日志：终端打印最近状态，CSV 保存完整 update 级指标。
             mean_reward = float(np.mean(rollout_rewards))
+            action_clip_fraction = float(np.mean(rollout_action_clip_fractions))
+            action_clip_excess_mean = float(np.mean(rollout_action_clip_excesses))
             rolling_episode_return = 0.0
             rolling_episode_length = 0.0
             if recent_episode_returns:
@@ -346,6 +367,8 @@ def main() -> None:
                 "rolling_episode_return": rolling_episode_return,
                 "rolling_episode_length": rolling_episode_length,
                 "mean_reward": mean_reward,
+                "action_clip_fraction": action_clip_fraction,
+                "action_clip_excess_mean": action_clip_excess_mean,
                 **update_metrics,
                 **agent.action_log_std_metrics(),
             }
@@ -362,6 +385,7 @@ def main() -> None:
                 "value_loss={value_loss:.4f} "
                 "entropy={entropy:.4f} "
                 "approx_kl={approx_kl:.6f} "
+                "act_clip={action_clip_fraction:.3f} "
                 "epochs_used={update_epochs_used:.0f} "
                 "early_stop={early_stopped:.0f} "
                 "log_std_mean={action_log_std_mean:.3f}".format(**row)
