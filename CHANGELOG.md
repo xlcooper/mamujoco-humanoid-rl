@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.18 - 2026-06-24
+
+- 做了什么：分析并固化 `sac_sb3_1m_seed0` 真实结果，将 `notes/stage3_sac/03_sb3_sac_long_training.md` 改为已完成总结；补充 `experiment_records/sac_sb3_1m_seed0.md` 的观察；新增 `src/render_sac_sb3.py` 和 `notes/stage3_sac/04_sb3_sac_video_rendering.md`，并更新 README 与路线图。
+- 为什么：SAC `1M` seed `0` deterministic evaluation mean return 达到 `6042.360`，10 个 episode 全部跑满 `1000` step；下一步需要通过视频确认高 return 是否对应稳定 locomotion 行为。
+
 ## v0.3.17 - 2026-06-24
 
 - 做了什么：分析并固化 `sac_sb3_smoke_seed0` 真实结果，将 `notes/stage3_sac/02_sb3_sac_smoke_test.md` 改为已完成总结；补充 `experiment_records/sac_sb3_smoke_seed0.md` 的观察；新增 `notes/stage3_sac/03_sb3_sac_long_training.md` 作为下一节 `1M` timesteps SAC 长训入口，并更新 README 与路线图。

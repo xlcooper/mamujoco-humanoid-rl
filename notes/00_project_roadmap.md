@@ -146,7 +146,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：SAC 是 off-policy 连续控制算法，使用 replay buffer 复用经验，训练 twin Q critic 和随机 actor，并通过 entropy 项保持探索。
 
-   当前状态：smoke test 已完成，正在推进 `1M` timesteps seed `0` 长训。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。当前入口为 `notes/stage3_sac/03_sb3_sac_long_training.md`。
+   当前状态：`1M` timesteps seed `0` 长训已完成，正在渲染 SAC 视频以确认行为质量。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。当前入口为 `notes/stage3_sac/04_sb3_sac_video_rendering.md`。
 
 2. automatic entropy tuning
 
@@ -182,7 +182,8 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
 - Stage 3 入口规划已完成，路线明确为 SB3 SAC baseline 与 PPO/SAC 对比。
 - SB3 SAC smoke test 已通过：`5000` timesteps seed `0` deterministic evaluation mean return 为 `207.056`。
-- 当前从 `notes/stage3_sac/03_sb3_sac_long_training.md` 推进 `1M` timesteps seed `0` 长训。
+- SB3 SAC `1M` seed `0` baseline 已完成：deterministic evaluation mean return 为 `6042.360`，10 episodes 全部达到 `1000` step。
+- 当前从 `notes/stage3_sac/04_sb3_sac_video_rendering.md` 渲染 SAC 视频，确认高 return 是否对应稳定 locomotion。
 - Stage 2 final TensorBoard re-run 暂缓；它是展示曲线补充，不阻塞 Stage 3。
 
 ### Stage 4：MaMuJoCo 多智能体扩展

@@ -1,39 +1,37 @@
-# 03 当前任务：SB3 SAC Long Training
+# 03 已完成：SB3 SAC Long Training
 
 ## 本节目标
 
-`02` 已经确认 SB3 SAC smoke test 链路可用。本节开始跑第一条可分析的 SAC baseline。
-
-本节仍然先做 seed `0`，目标是判断 SB3 SAC 在同一个 `partitioning=None` Humanoid 环境中是否具备比短训更强的学习趋势，并为后续 `1M-3M` timesteps、多 seed 和 PPO/SAC 对比打基础。
-
-本节不是最终结论，重点是：
+`02` 已经确认 SB3 SAC smoke test 链路可用。本节运行第一条可分析的 SAC baseline：
 
 - 跑 `1M` timesteps 的 SB3 SAC seed `0`。
 - 保存 TensorBoard、Monitor、checkpoint、VecNormalize 和 evaluation 输出。
 - 生成 Git 管理的轻量实验记录。
 - 初步对比 PPO final baseline。
 
-PPO final baseline 对照：
+## 训练配置
 
-- observation normalization
-- tanh-squashed Gaussian policy
-- update epochs: `4`
-- total timesteps: `3000000`
-- seed 0 evaluation mean return: `716.011`
-- seed 1 evaluation mean return: `899.806`
-- seed 2 evaluation mean return: `861.418`
-- three-seed mean over evaluation means: `825.745`
+实验记录：
 
-## 训练命令
+- `experiment_records/sac_sb3_1m_seed0.md`
 
-在 AutoDL 上运行：
+核心配置：
+
+- seed: `0`
+- total timesteps: `1000000`
+- learning starts: `10000`
+- replay buffer size: `1000000`
+- batch size: `256`
+- train frequency: `1`
+- gradient steps: `1`
+- entropy coefficient: `auto`
+- target entropy: `auto`
+- observation normalization: SB3 `VecNormalize(norm_obs=True, norm_reward=False)`
+- network: `MlpPolicy`, `net_arch=[256, 256]`
+
+训练命令：
 
 ```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-pip install -r requirements.txt
-
 python src/train_sac_sb3.py \
   --seed 0 \
   --total-timesteps 1000000 \
@@ -45,115 +43,70 @@ python src/train_sac_sb3.py \
   --log-interval 10
 ```
 
-默认使用：
+## 真实结果
 
-- `ent_coef="auto"`
-- `target_entropy="auto"`
-- `train_freq=1`
-- `gradient_steps=1`
-- `gamma=0.99`
-- `tau=0.005`
-- `VecNormalize(norm_obs=True, norm_reward=False)`
-- `MlpPolicy` with `net_arch=[256, 256]`
-
-## 实时查看 TensorBoard
-
-另开一个服务器终端：
-
-```bash
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-tensorboard \
-  --logdir /root/autodl-tmp/Humanoid-runs \
-  --host 0.0.0.0 \
-  --port 6006
-```
-
-优先看：
-
-- `rollout/ep_rew_mean`
-- `rollout/ep_len_mean`
-- `train/actor_loss`
-- `train/critic_loss`
-- `train/ent_coef`
-- `train/ent_coef_loss`
-- `time/fps`
-
-## 训练结束后评估
-
-训练命令结束时会自动评估一次。为了和 PPO 阶段一致，建议训练结束后单独复评并保存输出：
-
-```bash
-python src/evaluate_sac_sb3.py \
-  --checkpoint /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/checkpoints/sac_final.zip \
-  --vecnormalize /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/vecnormalize.pkl \
-  --episodes 10 \
-  --output-json /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/eval_results.json \
-  | tee /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/eval_output.txt
-```
-
-## 生成 Git 管理的轻量记录
-
-```bash
-python scripts/summarize_sac_run.py \
-  --run-dir /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0 \
-  --eval-output /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/eval_output.txt \
-  --eval-json /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/eval_results.json \
-  --output experiment_records/sac_sb3_1m_seed0.md
-```
-
-只提交轻量记录，不提交 run 目录、checkpoint、TensorBoard event 或 replay buffer：
-
-```bash
-git add experiment_records/sac_sb3_1m_seed0.md
-git commit -m "Record SB3 SAC 1M seed0 summary"
-git pull --rebase
-git push
-```
-
-如果训练或评估报错，把完整 traceback 贴回对话；如果没报错，就通过 Git 管理结果。我本地 pull 后再分析。
-
-## 输出路径
-
-默认 run 目录：
+deterministic evaluation：
 
 ```text
-/root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/
+episode=1 return=6086.414 length=1000
+episode=2 return=6043.676 length=1000
+episode=3 return=6016.683 length=1000
+episode=4 return=6070.044 length=1000
+episode=5 return=6017.678 length=1000
+episode=6 return=6075.439 length=1000
+episode=7 return=6035.541 length=1000
+episode=8 return=6097.653 length=1000
+episode=9 return=5977.473 length=1000
+episode=10 return=6003.000 length=1000
+mean_return=6042.360 std_return=37.329
+mean_length=1000.000
 ```
 
-需要确认的关键产物：
+Monitor tail 观察：
 
-```text
-config.json
-monitor.monitor.csv
-tensorboard/
-checkpoints/sac_final.zip
-vecnormalize.pkl
-eval_results.json
-eval_output.txt
-```
+- tail episode return 多数在 `5800-6100` 区间。
+- tail episode length 绝大多数达到 `1000` step 时间上限。
+- tail 中出现一次 `581` step episode，return 为 `3464.562`，但整体评估结果稳定。
 
-## 分析重点
+## 与 PPO Final Baseline 对比
 
-和 smoke test 对比：
+PPO final baseline：
 
-- `rollout/ep_rew_mean` 是否持续超过 `186`。
-- `rollout/ep_len_mean` 是否持续超过 `40.4`。
-- evaluation mean return 是否明显超过 smoke test 的 `207.056`。
-- episode length 是否从 40 step 左右进入更长的稳定区间。
+- seed 0 evaluation mean return: `716.011`
+- seed 1 evaluation mean return: `899.806`
+- seed 2 evaluation mean return: `861.418`
+- three-seed mean over evaluation means: `825.745`
 
-和 PPO final baseline 对比：
+SAC `1M` seed `0`：
 
-- SAC seed `0` 的 evaluation mean return 与 PPO seed `0` 的 `716.011` 对比。
-- SAC seed `0` 的 episode length 与 PPO final 视频/评估表现对比。
-- TensorBoard 中 SAC critic loss、actor loss、entropy coefficient 是否稳定。
+- evaluation mean return: `6042.360`
+- evaluation std: `37.329`
+- mean episode length: `1000.000`
 
-## 本节通过标准
+初步判断：
 
-- `1M` timesteps 训练完成。
-- run 目录生成 checkpoint、VecNormalize、TensorBoard、Monitor 和 evaluation 输出。
-- 生成并提交 `experiment_records/sac_sb3_1m_seed0.md`。
-- 能基于真实结果判断下一步是：
-  - 继续 `3M` timesteps 长训；
-  - 做 SAC 参数调整；
-  - 先补视频渲染确认行为质量；
-  - 或进入多 seed 验证。
+- 在当前 seed `0` 上，SB3 SAC 明显强于 Stage 2 PPO final baseline。
+- SAC 只训练 `1M` timesteps 就达到全部 evaluation episode 跑满 `1000` step，说明 off-policy SAC 在该 Humanoid 单智能体任务上非常有效。
+- 但目前仍只有 seed `0`，还不能直接写成多 seed 稳定性结论。
+
+## 本节结论
+
+Stage 3 第一条 SAC baseline 成功。
+
+这说明：
+
+- SB3 SAC 不只是工程链路跑通，而是在 `1M` timesteps 内学到了高回报策略。
+- 当前最重要的下一步不是继续盲目加到 `3M`，而是先渲染视频确认高 return 对应稳定 locomotion 行为。
+- 视频确认后，再决定做 SAC seed `1/2` 多 seed 验证，或整理 PPO/SAC 对比总结。
+
+## 下一节
+
+进入：
+
+- `notes/stage3_sac/04_sb3_sac_video_rendering.md`
+
+下一节目标：
+
+1. 使用 `src/render_sac_sb3.py` 渲染 SAC seed `0` deterministic evaluation 视频。
+2. 确认 `6042.360` mean return 对应的行为是否是稳定 locomotion。
+3. 根据视频表现决定下一步是 SAC multi-seed，还是先写 PPO/SAC 对比阶段总结。

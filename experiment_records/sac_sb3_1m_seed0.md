@@ -2,7 +2,7 @@
 
 ## 目的
 
-记录 `sac_sb3_1m_seed0` 的轻量训练结果，用于确认 SB3 SAC smoke test 链路是否跑通。
+记录 `sac_sb3_1m_seed0` 的轻量训练结果，用于分析第一条 SB3 SAC `1M` timesteps baseline。
 
 本记录只提交摘要，不提交 checkpoint、完整 run 目录、replay buffer、TensorBoard events 或视频。
 
@@ -134,5 +134,8 @@ mean_length=1000.000
 
 ## 初步观察
 
-- TODO: 本地 pull 后确认训练、checkpoint、VecNormalize、TensorBoard 和 evaluation 链路是否完整。
-- TODO: 判断 smoke test 是否可以固化为已完成，并决定下一步进入 SAC 长训还是先修参数/环境问题。
+- SB3 SAC `1M` seed `0` 训练完成，checkpoint、VecNormalize、Monitor、TensorBoard 和 evaluation 输出链路完整。
+- Monitor tail 中绝大多数 episode 达到 `1000` step 时间上限，tail return 多数在 `5800-6100` 区间。
+- deterministic evaluation 10 episodes 全部达到 `1000` step，mean return 为 `6042.360`，std 为 `37.329`，mean length 为 `1000.000`。
+- 与 PPO final baseline 对比：SAC seed `0` 的 evaluation mean return 明显高于 PPO seed `0` 的 `716.011`，也明显高于 PPO 三 seed mean `825.745`。
+- 下一步应优先渲染 SAC deterministic policy 视频，确认高 return 对应稳定 locomotion 行为；视频确认后再决定是做 SAC multi-seed，还是直接扩展到更完整的 PPO/SAC 对比总结。
