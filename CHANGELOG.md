@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.20 - 2026-06-25
+
+- 做了什么：新增 `notes/humanoid_rl_project_blog.md`，以技术博客/项目报告形式总结当前 MaMuJoCo Humanoid 强化学习项目，从环境适配、手写 PPO、诊断消融、tanh-squashed policy、SB3 SAC 强基线到 PPO/SAC 对比与视频行为观察。
+- 为什么：当前项目已经形成阶段性闭环，需要一篇可用于复盘、展示和后续简历材料整理的完整技术叙事；博客明确区分真实结论、局限和后续补充，避免把 SAC seed0 结果误写成多 seed 最终结论。
+
 ## v0.3.19 - 2026-06-24
 
 - 做了什么：将 `notes/stage3_sac/04_sb3_sac_video_rendering.md` 固化为已完成总结，记录 SAC 视频姿态前倾、屈身但能稳定移动的观察；新增 `notes/stage3_sac/05_ppo_sac_comparison_summary.md`，写出 PPO/SAC seed `0` 对比总结，并更新 README 与路线图。

@@ -28,6 +28,7 @@
 | [AUTODL_HOST_BASELINE.md](AUTODL_HOST_BASELINE.md) | AutoDL 硬件、CUDA、Conda 和关键包版本基线 |
 | [CHANGELOG.md](CHANGELOG.md) | 项目更新记录 |
 | [notes/00_project_roadmap.md](notes/00_project_roadmap.md) | 长期路线、实验阶梯和简历产出规划 |
+| [notes/humanoid_rl_project_blog.md](notes/humanoid_rl_project_blog.md) | 技术博客草稿：从手写 PPO 到 SB3 SAC 的项目总结 |
 | [notes/stage0_setup/01_project_start_and_env_check.md](notes/stage0_setup/01_project_start_and_env_check.md) | 已完成：AutoDL 与 MaMuJoCo 环境检查 |
 | [notes/stage1_2_ppo/02_minimal_ppo_baseline.md](notes/stage1_2_ppo/02_minimal_ppo_baseline.md) | 已完成：手写 PPO 最小训练闭环和 smoke test |
 | [notes/stage1_2_ppo/03_ppo_baseline_v0.md](notes/stage1_2_ppo/03_ppo_baseline_v0.md) | 已完成：第一条可分析 PPO baseline |
@@ -127,6 +128,7 @@ README.md
 CHANGELOG.md
 AUTODL_HOST_BASELINE.md
 notes/00_project_roadmap.md
+notes/humanoid_rl_project_blog.md
 notes/stage1_2_ppo/13_ppo_squashed_ep4_multiseed.md
 notes/stage1_2_ppo/15_stage2_final_tensorboard.md
 notes/stage3_sac/01_stage3_sac_entry.md
