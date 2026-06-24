@@ -24,34 +24,39 @@ Humanoid 是一个比较典型的高维连续控制任务：observation 维度�
 
 ## 2. 环境与任务设置
 
-### 2.1 MaMuJoCo Humanoid
+### 2.1 运行环境
+
+训练和评估在 AutoDL Linux 服务器上运行，本地负责代码编辑、Git 管理和结果分析。当前用于复现实验的环境基线如下，完整记录见 `AUTODL_HOST_BASELINE.md`。
+
+| 项目 | 配置 |
+| --- | --- |
+| 操作系统 | Ubuntu 22.04.5 LTS |
+| CPU | Intel Xeon Platinum 8470, 2 sockets, 52 cores/socket, 208 logical CPUs |
+| 内存 | 754 GiB total |
+| GPU | NVIDIA GeForce RTX 5090 D, 32607 MiB |
+| NVIDIA Driver | 595.71.05 |
+| CUDA 兼容版本 | 13.2, from `nvidia-smi` |
+| Conda | 24.4.0 |
+| 项目 Conda 环境 | `/root/autodl-tmp/conda-envs/humanoid-rl` |
+| Python | 3.11.15 |
+| torch | 2.12.1+cu130 |
+| gymnasium / gymnasium_robotics | 1.3.0 / 1.4.2 |
+| mujoco / pettingzoo | 3.9.0 / 1.26.1 |
+| TensorBoard | 2.20.0 |
+
+### 2.2 MaMuJoCo Humanoid
 
 MaMuJoCo 来自 Farama Gymnasium-Robotics，底层使用 PettingZoo Parallel API。Humanoid 支持不同的智能体划分方式：
 
 - `partitioning=None`：单智能体控制整个 Humanoid；
 - 类似 `9|8` 的 partitioning：把机器人拆成多个智能体。
 
-当前项目先使用 `partitioning=None`，也就是单智能体 Humanoid。这样做的原因是，单智能体设置更接近标准 MuJoCo 连续控制任务，便于先验证 PPO 和 SAC 的训练质量。多智能体分区控制保留为后续扩展方向。
+当前项目先使用 `partitioning=None`，也就是单智能体 Humanoid。多智能体分区控制保留为后续扩展方向。
 
-### 2.2 训练与记录方式
+### 2.3 训练与记录方式
 
-训练和评估在 AutoDL Linux 服务器上运行，本地负责代码编辑、Git 管理和结果分析。
+训练与评估产物保存在 AutoDL 数据盘的 `/root/autodl-tmp/Humanoid-runs/`，Git 只管理代码、notes 和轻量 `experiment_records/`。这样可以保留可复现信息，同时避免把 checkpoint、TensorBoard event、视频和 raw logs 这类大文件放进仓库。
 
-项目采用两层产物管理：
-
-```text
-/root/autodl-tmp/Humanoid-runs/
-```
-
-保存完整运行产物，包括 checkpoint、完整日志、TensorBoard event、视频和评估输出。
-
-```text
-experiment_records/
-```
-
-保存 Git 管理的轻量实验记录，包括训练配置、指标摘要、evaluation 输出和观察结论。
-
-这样可以避免把大文件提交到 Git，同时又能保留每次实验的关键事实。项目推进过程则写入 `notes/`，每个阶段对应一个 numbered note，一节完成后固化为“已完成总结”。
 
 ## 3. Stage 1：手写 PPO 训练闭环
 
@@ -67,7 +72,7 @@ experiment_records/
 - value loss、entropy logging 和 gradient clipping；
 - checkpoint、CSV 日志和 deterministic evaluation。
 
-这一阶段的目标是确认训练闭环可靠：环境能交互，rollout 能采样，PPO update 能执行，checkpoint 能保存和加载，evaluation 能给出可复现结果。
+目标 —— 确认训练闭环可靠：环境能交互，rollout 能采样，PPO update 能执行，checkpoint 能保存和加载，evaluation 能给出可复现结果。
 
 第一条可分析的 PPO baseline v0 在 `100k` timesteps 下得到：
 
@@ -93,7 +98,10 @@ Humanoid observation 维度高，不同维度的数值尺度差异明显。直�
 | PPO baseline v0 | 243.977 |
 | PPO + observation normalization | 276.612 |
 
-Observation normalization 让 evaluation mean return 提升约 `13.38%`，value loss 也明显下降。因此该改动被保留为后续 PPO 主线配置。
+#### 结论
+Observation normalization 让 evaluation mean return 提升约 `13.38%`，value loss 也明显下降，说明了归一化降低了 Critic 优化压力。
+
+该改动被保留为后续 PPO 主线配置。
 
 ### 4.2 KL early stopping
 
@@ -104,7 +112,10 @@ Observation normalization 让 evaluation mean return 提升约 `13.38%`，value 
 - `target_kl=0.03`
 - `target_kl=0.06`
 
-这个机制可以限制 update 强度，但 `0.03` 太保守，`0.06` 也没有成为最终最强配置。因此它被记录为有效机制，但没有进入最终 PPO baseline。
+#### 结论
+这个机制可以限制 update 强度，但 `0.03` 太保守，`0.06` 也没有成为最终最强配置。
+
+该优化被记录为有效机制，没有进入 PPO 主线配置。
 
 ### 4.3 长训与动作分布问题
 
@@ -118,7 +129,8 @@ Observation normalization 让 evaluation mean return 提升约 `13.38%`，value 
 
 随后项目加入 action clipping diagnostics，统计 raw Gaussian action 超出环境动作范围的比例。结果显示，长训 tail 中约 `98.26%` 的 raw action 维度被环境裁剪，平均越界幅度约 `19.55`。
 
-这说明当时的 policy 采样动作与环境实际执行动作严重不一致：PPO 根据 raw action 计算 log probability，但环境实际执行 clipped action，训练目标和真实交互之间出现偏差。
+#### 结论
+当时的 policy 采样动作与环境实际执行动作严重不一致：PPO 根据 raw action 计算 log probability，但环境实际执行 clipped action，训练目标和真实交互之间出现偏差。通过引入 tanh-squashed Gaussian policy，可以让策略天然输出环境合法动作。
 
 ### 4.4 Tanh-squashed Gaussian policy
 
@@ -129,11 +141,12 @@ Observation normalization 让 evaluation mean return 提升约 `13.38%`，value 
 3. 再缩放到环境 action range；
 4. 对 log probability 加上 Jacobian correction。
 
-改动后，action clipping fraction 从约 `98.26%` 降到 `0.00%`，策略采样动作和环境执行动作对齐。
+#### 结论
+改动后，action clipping fraction 从约 `98.26%` 降到 `0.00%`，策略采样动作和环境执行动作对齐。评估稳定性得到了显著提升，噪声减少，critic 压力明显下降，不过 squashed policy 下 PPO update 仍过猛。
 
 ### 4.5 Update epochs tuning
 
-初始 squashed policy 仍使用 `update_epochs=10`，KL 和 clip fraction 仍偏高。后续将 update epochs 从 `10` 降到 `4`，降低同一批 rollout 被重复训练的强度。
+由于 squashed policy 仍使用 `update_epochs=10`，KL 和 clip fraction 偏高。将 update epochs 从 `10` 降到 `4`，降低同一批 rollout 被重复训练的强度。
 
 最终 PPO baseline 配置为：
 
@@ -163,19 +176,26 @@ python src/train_ppo.py \
 825.745
 ```
 
-这个 PPO baseline 不代表最优策略，但它已经满足当前阶段的要求：手写实现、可复现、有诊断、有消融，并完成多 seed 验证。
+#### 结论
+降低更新次数后，squashed policy 既保持合法动作，又避免 ep10 的 KL/clip fraction 爆炸，实验平均评估回报得到了显著提升。
+
+当前 PPO baseline 满足阶段要求：手写实现、可复现、有诊断、有消融，并完成多 seed 验证。
+
+### 4.6 PPO final TensorBoard 展示（预留）
+
+后续计划补充 PPO final seed `1` 的 TensorBoard 截图。seed `1` 是当前 PPO final baseline 中 evaluation mean return 最高的一组，结果为 `899.806`。
+
+建议截图包含训练回报、episode length、value loss、entropy、approx KL、clip fraction，以及 action clipping diagnostics 等指标。
+
+<!-- TODO: 插入 PPO final seed1 TensorBoard 截图 -->
 
 ## 5. Stage 3：引入 SB3 SAC 强基线
 
-PPO 阶段完成后，继续只调 PPO 的收益有限。因此项目引入 Stable-Baselines3 SAC 作为 off-policy 强基线。
+项目引入 Stable-Baselines3 SAC 作为 off-policy 强基线，补齐对照：
 
-引入 SAC 的目的不是替代 PPO 阶段，而是补齐对照：
-
-- PPO 展示手写算法实现、诊断和消融过程；
-- SAC 提供成熟 off-policy 方法的强基线；
 - 两者共同构成 on-policy 与 off-policy 方法的实验对比。
 
-SAC 使用同一个 `partitioning=None` Humanoid 单智能体环境，并新增 Gymnasium-style wrapper 适配 SB3。
+SAC 使用同一个 `partitioning=None` Humanoid 单智能体环境，并新增 Gymnasium-style wrapper 用于适配 SB3。
 
 SAC 训练入口默认配置：
 
@@ -208,15 +228,20 @@ mean_return=6042.360 std_return=37.329
 mean_length=1000.000
 ```
 
+#### 结论
 10 个 evaluation episode 全部达到 `1000` step 时间上限。相比 PPO final baseline 的三 seed mean `825.745`，SAC seed `0` 的 reward 表现明显更强。
 
 不过这里需要明确边界：PPO 已完成 seed `0/1/2` 多 seed 验证，SAC 当前只完成 seed `0`。因此当前结论是：SAC seed `0` 已经形成强 off-policy 对照，但 SAC 多 seed 稳定性仍需后续补充。
 
+### SAC 1M TensorBoard 展示（预留）
+
+后续计划补充 `sac_sb3_1m_seed0` 的 TensorBoard 截图。建议截图包含 `rollout/ep_rew_mean`、`rollout/ep_len_mean`、`train/actor_loss`、`train/critic_loss`、`train/ent_coef` 和 `train/ent_coef_loss`。
+
+<!-- TODO: 插入 SAC 1M seed0 TensorBoard 截图 -->
+
 ## 7. 视频观察
 
-SAC seed `0` 的视频显示，策略能够稳定站立并持续移动，不是倒地滑行，也不是评估加载错误。
-
-但视频里的姿态明显前倾、屈身，不接近自然人类步态。也就是说，策略确实学到了能拿高 reward 的 locomotion 行为，但这种行为更偏 reward-driven，而不是自然步态生成。
+SAC seed `0` 的视频显示，策略能够稳定站立并持续移动。但视频里的姿态明显前倾、屈身，不接近自然人类步态。也就是说策略确实学到了能拿高 reward 的 locomotion 行为，但这种行为更偏 reward-driven，而不是自然步态生成。
 
 因此对 SAC 的描述需要分开两层：
 
@@ -224,7 +249,6 @@ SAC seed `0` 的视频显示，策略能够稳定站立并持续移动，不是�
 - 从视频行为看，SAC 策略稳定但姿态不自然；
 - 如果目标是自然步态，还需要额外的 reward 设计、动作平滑、姿态约束或 imitation learning。
 
-这也是为什么项目中保留视频观察：连续控制任务不能只看 return，策略行为本身也需要检查。
 
 ## 8. PPO/SAC 阶段性对比
 
@@ -238,44 +262,29 @@ SAC seed `0` 的视频显示，策略能够稳定站立并持续移动，不是�
 | mean episode length | 未全部满 1000 | 1000.000 |
 | 视频观察 | 分数提升但行为有限 | 稳定移动但姿态不自然 |
 
-阶段性结论：
+#### 对比结论
 
-- 手写 PPO final baseline 是一个可解释、可复现、经过多 seed 验证的 on-policy baseline；
-- SB3 SAC seed `0` 在更少 timesteps 下得到显著更高的 reward 和 episode length；
-- SAC 当前仍缺少多 seed 验证，不能直接写成多 seed 稳定性结论；
-- SAC 视频行为说明高 return 不等于自然步态。
 
-## 9. 当前局限与后续方向
+SB3 SAC seed `0` 在更少 timesteps 下得到显著更高的 reward 和 episode length，验证了在 Humanoid 这类高维连续控制任务中，SAC 更容易利用大量历史交互数据改进策略。
 
-目前已经完成：
 
-- MaMuJoCo Humanoid 单智能体环境适配；
-- 手写 PPO baseline；
-- PPO 诊断、优化和三 seed 验证；
-- SB3 SAC smoke test；
-- SB3 SAC `1M` seed0 强基线；
-- PPO/SAC 阶段性对比。
-
-仍未完成：
+## 9. 后续方向
 
 - SAC seed `1/2` 多 seed 验证；
-- 更系统的视频行为对比；
-- Stage 2 final TensorBoard 补充任务；
 - MaMuJoCo 多智能体分区实验。
 
-后续如果继续推进，优先级比较自然的是补 SAC seed `1/2`，验证 seed0 的高分是否稳定。再往后可以扩展到 MaMuJoCo 多智能体分区。如果目标转向更自然的步态，则需要考虑 reward shaping、姿态约束、动作平滑惩罚或 imitation learning。
+如果需要更自然的步态，则需要考虑 reward shaping、姿态约束、动作平滑惩罚或 imitation learning。
 
-## 10. 总结
+## 10. 项目总结
 
-这个项目目前形成了一条比较完整的强化学习实验流程：
+这个项目目前主要作为一条比较完整的强化学习实验流程用于学习与锻炼：
 
-1. 先手写 PPO，跑通训练和评估闭环；
+1. 手写 PPO，跑通训练和评估闭环；
 2. 通过 observation normalization、action clipping diagnostics、tanh-squashed Gaussian policy 和 update epochs tuning 优化 PPO；
 3. 得到三 seed mean return 为 `825.745` 的 PPO final baseline；
 4. 引入 SB3 SAC，得到 seed0 `1M` timesteps mean return `6042.360` 的强 off-policy 对照；
-5. 通过视频检查补充行为质量判断，避免只用 return 描述策略表现。
+5. 视频渲染补充行为质量判断。
 
-当前最稳妥的结论是：
+## 11. 实验结论
 
-> 手写 PPO final baseline 已完成 seed `0/1/2` 验证，三 seed evaluation mean 为 `825.745`；在同一 MaMuJoCo Humanoid 单智能体环境下，SB3 SAC seed0 用 `1M` timesteps 达到 `6042.360` evaluation mean return，并能稳定跑满 episode，但视频显示策略姿态不自然，更适合描述为 reward-driven locomotion。SAC 多 seed 验证留作后续补充。
-
+> 手写 PPO final baseline 已完成 seed `0/1/2` 验证，三 seed evaluation mean 为 `825.745`；在同一 MaMuJoCo Humanoid 单智能体环境下，SB3 SAC seed0 用 `1M` timesteps 达到 `6042.360` evaluation mean return，并能稳定跑满 episode，但视频显示策略姿态不自然（reward-driven locomotion）。

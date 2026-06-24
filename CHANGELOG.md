@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.21 - 2026-06-25
+
+- 做了什么：优化 `notes/humanoid_rl_project_blog.md` 的环境与任务设置部分，补充 AutoDL 服务器硬件、CUDA、Conda、Python 与关键依赖版本表；精简训练与记录方式描述，并预留 PPO final seed `1` 与 SAC `1M` seed `0` 的 TensorBoard 截图结构。
+- 为什么：博客需要更像一篇可展示的项目报告，环境配置要足够清楚，训练记录方式保持简洁，同时方便后续直接插入两组关键 TensorBoard 曲线。
+
 ## v0.3.20 - 2026-06-25
 
 - 做了什么：新增 `notes/humanoid_rl_project_blog.md`，以技术博客/项目报告形式总结当前 MaMuJoCo Humanoid 强化学习项目，从环境适配、手写 PPO、诊断消融、tanh-squashed policy、SB3 SAC 强基线到 PPO/SAC 对比与视频行为观察。
