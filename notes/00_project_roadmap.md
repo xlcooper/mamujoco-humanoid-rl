@@ -146,7 +146,7 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 
    中文解释：SAC 是 off-policy 连续控制算法，使用 replay buffer 复用经验，训练 twin Q critic 和随机 actor，并通过 entropy 项保持探索。
 
-   当前状态：`1M` timesteps seed `0` 长训已完成，正在渲染 SAC 视频以确认行为质量。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。当前入口为 `notes/stage3_sac/04_sb3_sac_video_rendering.md`。
+   当前状态：`1M` timesteps seed `0` 长训与视频检查已完成，并已写出 PPO/SAC 对比总结。Stage 3 优先使用 Stable-Baselines3 的 SAC 实现，不再手写 SAC；重点放在强基线、对比实验和结果解释。SAC multi-seed 暂缓，作为后续补充。
 
 2. automatic entropy tuning
 
@@ -183,7 +183,8 @@ Farama 文档说明 MaMuJoCo 主要使用 PettingZoo Parallel API；Humanoid 可
 - Stage 3 入口规划已完成，路线明确为 SB3 SAC baseline 与 PPO/SAC 对比。
 - SB3 SAC smoke test 已通过：`5000` timesteps seed `0` deterministic evaluation mean return 为 `207.056`。
 - SB3 SAC `1M` seed `0` baseline 已完成：deterministic evaluation mean return 为 `6042.360`，10 episodes 全部达到 `1000` step。
-- 当前从 `notes/stage3_sac/04_sb3_sac_video_rendering.md` 渲染 SAC 视频，确认高 return 是否对应稳定 locomotion。
+- SB3 SAC seed `0` 视频已检查：策略能稳定移动但姿态前倾、屈身，应描述为 reward-driven locomotion，而不是自然步态。
+- PPO/SAC 对比总结已完成：SAC seed `0` 明显强于 PPO final baseline，但 SAC 多 seed 稳定性仍待后续补充。
 - Stage 2 final TensorBoard re-run 暂缓；它是展示曲线补充，不阻塞 Stage 3。
 
 ### Stage 4：MaMuJoCo 多智能体扩展

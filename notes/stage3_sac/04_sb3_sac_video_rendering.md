@@ -1,17 +1,10 @@
-# 04 当前任务：SB3 SAC Video Rendering
+# 04 已完成：SB3 SAC Video Rendering
 
 ## 本节目标
 
 `03` 中 SB3 SAC `1M` seed `0` evaluation mean return 达到 `6042.360`，10 个 evaluation episode 全部跑满 `1000` step。
 
 本节目标是渲染 deterministic policy 视频，确认高 return 是否对应稳定、直观的 locomotion 行为。
-
-本节不再重新训练，只做：
-
-- 加载 `sac_sb3_1m_seed0` checkpoint。
-- 加载 `vecnormalize.pkl`。
-- 录制 deterministic evaluation 视频。
-- 根据视频观察决定下一步是 SAC multi-seed，还是先写 PPO/SAC 对比总结。
 
 ## 本节代码变化
 
@@ -25,13 +18,7 @@
 
 ## 渲染命令
 
-在 AutoDL 上运行：
-
 ```bash
-cd /root/autodl-tmp/Humanoid
-git pull --rebase
-conda activate /root/autodl-tmp/conda-envs/humanoid-rl
-
 python src/render_sac_sb3.py \
   --checkpoint /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/checkpoints/sac_final.zip \
   --vecnormalize /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/vecnormalize.pkl \
@@ -46,48 +33,37 @@ python src/render_sac_sb3.py \
 /root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/videos/
 ```
 
-视频文件示例：
-
-```text
-episode_001.mp4
-episode_002.mp4
-episode_003.mp4
-```
-
 视频文件不提交 Git。
 
-## 观察重点
+## 视频观察
 
-优先确认：
+用户已查看 `episode_003` 视频截图。
 
-- 是否能稳定站立并持续前进。
-- 是否存在明显“原地抖动但拿高分”的行为。
-- 是否有接近自然的交替步态。
-- 身体是否长期贴地、倒地滑行或异常旋转。
-- 1000 step 期间行为是否稳定，还是后半段明显退化。
+观察：
 
-## 记录方式
+- SAC 策略能保持站立并持续移动，没有表现为倒地后滑行。
+- 姿态明显前倾、屈身，步态不接近自然人类走路。
+- 这种“姿态怪但高回报”的行为在 MuJoCo locomotion 中是常见现象：策略优化的是环境 reward，而不是视觉自然度或人体运动学美观度。
+- 因此本项目结论应写成：SAC 在 reward 和 episode length 上显著强于当前 PPO baseline，但视频行为仍需如实描述为 reward-driven locomotion，而不是自然人形步态。
 
-视频不进 Git，但观察结论要写回本 note。
+## 本节结论
 
-如果视频显示行为合理，本节完成后应把本 note 改成“已完成总结”，并记录：
+视频确认了 SAC 高分策略不是训练链路错误或评估加载错误；它确实学到了能稳定存活并移动的行为。
 
-- 视频路径。
-- 每个 episode 的 return / length。
-- 行为观察。
-- 是否支持进入 SAC multi-seed。
+但行为姿态不自然，说明：
 
-如果渲染报错，把完整 traceback 贴回对话；默认按 AutoDL 环境问题处理。
+- return 高不等于自然 locomotion。
+- 简历和总结中应强调“连续控制 reward 表现”和“工程对比”，不要夸成“自然步态生成”。
+- 多 seed 验证可以作为后续补充；当前先写 PPO/SAC 对比总结更合适。
 
-## 下一步候选
+## 下一节
 
-如果视频确认 SAC 行为质量良好：
+进入：
 
-1. 跑 SAC seed `1/2`，验证多 seed 稳定性。
-2. 或先写 PPO/SAC seed `0` 对比总结，再决定是否补多 seed。
+- `notes/stage3_sac/05_ppo_sac_comparison_summary.md`
 
-如果视频显示行为异常：
+下一节目标：
 
-1. 保留高分但标注行为问题。
-2. 优先排查 reward 组成、termination 条件和渲染行为。
-3. 再决定是否调 SAC 参数或补其他诊断。
+1. 基于已有真实结果写 PPO/SAC 对比总结。
+2. 明确当前对比只覆盖 SAC seed `0`，SAC multi-seed 暂缓。
+3. 将视频行为观察纳入结论，避免只看 return。

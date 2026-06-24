@@ -46,7 +46,8 @@
 | [notes/stage3_sac/01_stage3_sac_entry.md](notes/stage3_sac/01_stage3_sac_entry.md) | 已完成规划：Stage 3 SB3 SAC baseline and off-policy comparison |
 | [notes/stage3_sac/02_sb3_sac_smoke_test.md](notes/stage3_sac/02_sb3_sac_smoke_test.md) | 已完成：SB3 SAC smoke test |
 | [notes/stage3_sac/03_sb3_sac_long_training.md](notes/stage3_sac/03_sb3_sac_long_training.md) | 已完成：SB3 SAC long training |
-| [notes/stage3_sac/04_sb3_sac_video_rendering.md](notes/stage3_sac/04_sb3_sac_video_rendering.md) | 当前任务：SB3 SAC video rendering |
+| [notes/stage3_sac/04_sb3_sac_video_rendering.md](notes/stage3_sac/04_sb3_sac_video_rendering.md) | 已完成：SB3 SAC video rendering |
+| [notes/stage3_sac/05_ppo_sac_comparison_summary.md](notes/stage3_sac/05_ppo_sac_comparison_summary.md) | 已完成：PPO/SAC comparison summary |
 | [experiment_records/ppo_smoke_test_001.md](experiment_records/ppo_smoke_test_001.md) | 已完成实验：PPO smoke test 轻量记录 |
 | [experiment_records/ppo_baseline_v0_seed0.md](experiment_records/ppo_baseline_v0_seed0.md) | 已完成实验：PPO baseline v0 |
 | [experiment_records/ppo_baseline_v1_obsnorm_seed0.md](experiment_records/ppo_baseline_v1_obsnorm_seed0.md) | 已完成实验：PPO baseline v1 obs norm |
@@ -72,7 +73,7 @@
 
 ## 当前阶段
 
-当前阶段：Stage 3 SB3 SAC video rendering。Stage 2 final TensorBoard re-run 暂缓，它只补充展示曲线，不阻塞 Stage 3 的 SAC 强基线推进。
+当前阶段：Stage 3 PPO/SAC comparison summary 已完成；SAC multi-seed 暂缓，作为后续补充。Stage 2 final TensorBoard re-run 暂缓，它只补充展示曲线，不阻塞 Stage 3 的 SAC 强基线推进。
 
 已完成：
 
@@ -99,6 +100,8 @@
 - Stage 3 SAC 路线规划，明确使用 SB3 SAC，不再手写 SAC。
 - SB3 SAC smoke test seed `0`，`5000` timesteps 链路验证通过，deterministic evaluation mean return 为 `207.056`。
 - SB3 SAC `1M` seed `0` baseline，deterministic evaluation mean return 为 `6042.360`，10 episodes mean length 为 `1000.000`。
+- SB3 SAC seed `0` 视频观察：策略能稳定移动但姿态前倾、屈身，不是自然人类步态；该行为应描述为 reward-driven locomotion。
+- PPO/SAC seed `0` 对比总结：SAC seed `0` 显著高于 PPO final baseline，但 SAC 多 seed 稳定性仍是后续补充。
 
 最终单智能体 baseline：
 
@@ -114,7 +117,7 @@
 当前教程：
 
 ```text
-notes/stage3_sac/04_sb3_sac_video_rendering.md
+notes/stage3_sac/05_ppo_sac_comparison_summary.md
 ```
 
 新对话接手时，先阅读：
@@ -130,6 +133,7 @@ notes/stage3_sac/01_stage3_sac_entry.md
 notes/stage3_sac/02_sb3_sac_smoke_test.md
 notes/stage3_sac/03_sb3_sac_long_training.md
 notes/stage3_sac/04_sb3_sac_video_rendering.md
+notes/stage3_sac/05_ppo_sac_comparison_summary.md
 experiment_records/ppo_smoke_test_001.md
 experiment_records/ppo_baseline_v0_seed0.md
 experiment_records/ppo_baseline_v1_obsnorm_seed0.md
@@ -200,7 +204,8 @@ experiment_records/
 | Stage 3-01 | SB3 SAC baseline and off-policy comparison | 已完成规划 |
 | Stage 3-02 | SB3 SAC smoke test | 已完成 |
 | Stage 3-03 | SB3 SAC long training | 已完成 |
-| Stage 3-04 | SB3 SAC video rendering | 当前进行中 |
+| Stage 3-04 | SB3 SAC video rendering | 已完成 |
+| Stage 3-05 | PPO/SAC comparison summary | 已完成 |
 
 ## 阶段状态
 
@@ -215,10 +220,10 @@ experiment_records/
 
 ## 当前任务入口
 
-按 `notes/stage3_sac/04_sb3_sac_video_rendering.md` 在 AutoDL 上渲染 SB3 SAC seed `0` deterministic evaluation 视频，确认高 return 是否对应稳定 locomotion。
+当前可继续补充 SAC seed `1/2` 多 seed 验证；如暂不补充，可进入项目总结与简历材料整理。
 
 ```text
-/root/autodl-tmp/Humanoid-runs/sac_sb3_1m_seed0/videos/
+notes/stage3_sac/05_ppo_sac_comparison_summary.md
 ```
 
 ## 官方资料入口

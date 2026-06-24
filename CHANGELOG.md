@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.19 - 2026-06-24
+
+- 做了什么：将 `notes/stage3_sac/04_sb3_sac_video_rendering.md` 固化为已完成总结，记录 SAC 视频姿态前倾、屈身但能稳定移动的观察；新增 `notes/stage3_sac/05_ppo_sac_comparison_summary.md`，写出 PPO/SAC seed `0` 对比总结，并更新 README 与路线图。
+- 为什么：SAC 多 seed 训练暂缓，先基于已有真实结果形成可用于项目复盘和简历表述的对比结论；同时避免只用 return 夸大策略行为质量，将视频中的 reward-driven locomotion 如实写入结论。
+
 ## v0.3.18 - 2026-06-24
 
 - 做了什么：分析并固化 `sac_sb3_1m_seed0` 真实结果，将 `notes/stage3_sac/03_sb3_sac_long_training.md` 改为已完成总结；补充 `experiment_records/sac_sb3_1m_seed0.md` 的观察；新增 `src/render_sac_sb3.py` 和 `notes/stage3_sac/04_sb3_sac_video_rendering.md`，并更新 README 与路线图。
