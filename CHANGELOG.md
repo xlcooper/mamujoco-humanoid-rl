@@ -1,5 +1,10 @@
 # 更新记录
 
+## v0.3.22 - 2026-06-25
+
+- 做了什么：在当前工作目录下整理发布版项目包 `humanoid-locomotion-rl/`，复制项目核心 `src/`、`scripts/`、`requirements.txt`，并新增 GitHub 风格 README、MIT LICENSE、环境说明、结果摘要与图表/视频占位目录；同时将该发布包加入当前仓库 `.gitignore`。
+- 为什么：当前仓库主要承担本地与 AutoDL 服务器之间的项目管理和实验推进职责，不适合原样作为公开 GitHub 项目；发布版项目包只保留实验项目本体，方便后续移出并初始化为新的公开仓库。
+
 ## v0.3.21 - 2026-06-25
 
 - 做了什么：优化 `notes/humanoid_rl_project_blog.md` 的环境与任务设置部分，补充 AutoDL 服务器硬件、CUDA、Conda、Python 与关键依赖版本表；精简训练与记录方式描述，并预留 PPO final seed `1` 与 SAC `1M` seed `0` 的 TensorBoard 截图结构。
